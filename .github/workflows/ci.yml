@@ -29,3 +29,28 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  browser-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify system Chrome
+        run: google-chrome --version
+      - name: Physical 3D interaction checks
+        run: npm run test:e2e
+      - name: Teaching, transient, accessibility and viewport checks
+        run: npm run test:e2e:advanced
+      - name: Save browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence
+          path: screenshots/

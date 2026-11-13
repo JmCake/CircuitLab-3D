@@ -27,6 +27,7 @@ const UP = new THREE.Vector3(0, 1, 0);
 function getAttachment(
   components: LabComponent[],
   portId: string,
+  stackIndex = 0,
 ): Attachment | null {
   const owner = findPortOwner(components, portId);
   if (!owner) return null;
@@ -39,8 +40,9 @@ function getAttachment(
   const normal = new THREE.Vector3(...getPortWorldNormal(owner.component, owner.portKey)).normalize();
   const p = new THREE.Vector3(...world);
   const isHole = port.role === 'hole' || port.visible === false;
-  const pathOffset = isHole ? 0.028 : 0.057;
-  const plugOffset = isHole ? 0.001 : 0.012;
+  const stackOffset = isHole ? 0 : stackIndex * 0.024;
+  const pathOffset = (isHole ? 0.028 : 0.057) + stackOffset;
+  const plugOffset = (isHole ? 0.001 : 0.012) + stackOffset;
   return {
     pathPoint: p.clone().add(normal.clone().multiplyScalar(pathOffset)),
     plugPoint: p.clone().add(normal.clone().multiplyScalar(plugOffset)),
@@ -72,24 +74,25 @@ function makeCurve(
     ? new THREE.Vector3(-horizontal.z, 0, horizontal.x).normalize()
     : new THREE.Vector3(1, 0, 0);
   const lateral = ((hash % 7) - 3) * 0.008;
-  const lift = Math.min(0.145, 0.035 + distance * 0.085);
+  // Slack cables sag onto the desk instead of forming tall arches across instrument displays.
+  const deskHeight = 0.009 + (hash % 5) * 0.002;
   const firstControl = start
     .clone()
     .add(startNormal.clone().multiplyScalar(Math.min(0.06, distance * 0.32)))
-    .add(new THREE.Vector3(0, 0.012, 0));
+    .add(new THREE.Vector3(0, -0.008, 0));
   const lastControl = end
     .clone()
     .add(endNormal.clone().multiplyScalar(Math.min(0.06, distance * 0.32)))
-    .add(new THREE.Vector3(0, 0.012, 0));
+    .add(new THREE.Vector3(0, -0.008, 0));
   const middle = start
     .clone()
     .add(end)
     .multiplyScalar(0.5)
-    .add(side.multiplyScalar(lateral))
-    .add(new THREE.Vector3(0, lift, 0));
+    .add(side.multiplyScalar(lateral));
+  middle.y = Math.min(middle.y, deskHeight);
   const points = [start, firstControl, middle, lastControl, end];
   for (const point of points) {
-    point.y = Math.max(0.03, point.y);
+    point.y = Math.max(0.006, point.y);
   }
   return new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.5);
 }
@@ -152,8 +155,10 @@ function WireMesh({
   selected: boolean;
 }) {
   const selectWire = useLabStore((state) => state.selectWire);
-  const from = getAttachment(components, wire.fromPortId);
-  const to = getAttachment(components, wire.toPortId);
+  const wires = useLabStore(state => state.wires);
+  const stackAt = (portId: string) => wires.filter(w => w.fromPortId === portId || w.toPortId === portId).findIndex(w => w.id === wire.id);
+  const from = getAttachment(components, wire.fromPortId, stackAt(wire.fromPortId));
+  const to = getAttachment(components, wire.toPortId, stackAt(wire.toPortId));
 
   const pathKey = from && to
     ? `${from.pathPoint.x.toFixed(5)},${from.pathPoint.y.toFixed(5)},${from.pathPoint.z.toFixed(5)}|${to.pathPoint.x.toFixed(5)},${to.pathPoint.y.toFixed(5)},${to.pathPoint.z.toFixed(5)}|${wire.id}`

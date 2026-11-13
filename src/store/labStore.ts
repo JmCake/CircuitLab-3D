@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { advanceTransient, TRANSIENT_SAMPLE_DT, TRANSIENT_MAX_STEP } from '../circuit/simulation/transient';
+import { measurementIssue } from '../circuit/measurement';
 import {
   BENCH,
   clampComponentPosition,
@@ -208,7 +210,7 @@ function makeTransientRuntime(): TransientRuntime {
     active: false,
     running: false,
     time: 0,
-    dt: 0.02,
+    dt: TRANSIENT_SAMPLE_DT,
     capacitorVoltages: {},
     samples: [],
   };
@@ -429,7 +431,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
     activeLabId: initial.activeLabId,
     mode: initial.mode,
     sideTab: 'lab',
-    libraryOpen: true,
+    libraryOpen: typeof window === 'undefined' || window.innerWidth > 1020,
     wireColor: WIRE_COLORS[0].value,
     interactionMode: 'idle',
     draftWire: null,
@@ -973,8 +975,9 @@ export const useLabStore = create<LabStore>()((set, get) => {
 
     recordMeasurement: () => {
       const state = get();
-      if (!state.result.solved) {
-        toast('error', '无法记录数据', '当前电路没有有效解，请检查诊断信息。');
+      const issue = measurementIssue(state.components, state.result);
+      if (issue) {
+        toast('error', '无法记录数据', issue);
         return;
       }
       const findFirst = (type: ComponentType) => state.components.find((item) => item.type === type);
@@ -1055,13 +1058,13 @@ export const useLabStore = create<LabStore>()((set, get) => {
           active: true,
           running: true,
           time: 0,
-          dt: 0.02,
+          dt: TRANSIENT_SAMPLE_DT,
           capacitorVoltages: initialValues,
           samples: [{ time: 0, values: initialValues }],
         },
         sideTab: 'data',
       });
-      toast('info', 'RC 暂态已启动', '后向欧拉步长 20 ms；可在数据页观察曲线并暂停。');
+      toast('info', 'RC 暂态已启动', '后向欧拉积分 2 ms、采样 20 ms；后台标签页自动冻结计时。');
     },
 
     resumeTransient: () => {
@@ -1095,11 +1098,10 @@ export const useLabStore = create<LabStore>()((set, get) => {
       const transient = state.transient;
       if (!transient.active || !transient.running) return;
       const nextTime = transient.time + transient.dt;
-      const result = simulateSafe(state.components, state.wires, {
-        capacitorVoltages: transient.capacitorVoltages,
-        dt: transient.dt,
-        time: nextTime,
-      });
+      const result = advanceTransient(
+        { components: state.components, wires: state.wires },
+        transient.capacitorVoltages, transient.time, transient.dt, TRANSIENT_MAX_STEP,
+      );
       if (!result.solved) {
         set({
           result,

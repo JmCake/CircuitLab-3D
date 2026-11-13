@@ -4,10 +4,11 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useLabStore } from '../store/labStore';
+import { getDefinition } from '../circuit';
 import { cameraBridge } from './cameraBridge';
 
-const DEFAULT_POSITION = new THREE.Vector3(1.78, 1.62, 2.55);
-const DEFAULT_TARGET = new THREE.Vector3(0, 0.075, -0.02);
+const DEFAULT_POSITION = new THREE.Vector3(0.64, 0.78, 1.62);
+const DEFAULT_TARGET = new THREE.Vector3(0, 0.12, -0.02);
 
 interface CameraTween {
   active: boolean;
@@ -23,6 +24,9 @@ export function CameraRig() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
+  const invalidate = useThree((state) => state.invalidate);
+  const aspect = useThree((state) => state.size.width / state.size.height);
+  const layoutKey = useLabStore(state => state.components.map(c => c.id).join('|'));
   const interactionMode = useLabStore((state) => state.interactionMode);
   const tween = useRef<CameraTween>({
     active: false,
@@ -46,19 +50,50 @@ export function CameraRig() {
       fromTarget: controls.target.clone(),
       toTarget: target.clone(),
     };
+    invalidate();
   };
 
   useEffect(() => {
-    camera.position.copy(DEFAULT_POSITION);
-    camera.lookAt(DEFAULT_TARGET);
-    if (controlsRef.current) {
-      controlsRef.current.target.copy(DEFAULT_TARGET);
-      controlsRef.current.update();
-    }
+    const frameBench = (preset: 'perspective' | 'top' | 'front') => {
+      const components = useLabStore.getState().components;
+      const corners: THREE.Vector3[] = [];
+      for (const component of components) {
+        const d = getDefinition(component.type);
+        const rotation = new THREE.Matrix4().makeRotationY(component.rotationY);
+        for (const x of [-d.footprint[0] / 2 - 0.02, d.footprint[0] / 2 + 0.02]) {
+          for (const z of [-d.footprint[1] / 2 - 0.03, d.footprint[1] / 2 + 0.09]) {
+            for (const y of [0, d.height + 0.015]) {
+              corners.push(new THREE.Vector3(x, y, z).applyMatrix4(rotation).add(new THREE.Vector3(component.position[0], 0, component.position[1])));
+            }
+          }
+        }
+      }
+      if (corners.length === 0) { startTween(DEFAULT_TARGET, new THREE.Vector3(1.4, 1.4, 2.4)); return; }
+      const bounds = new THREE.Box3().setFromPoints(corners);
+      const target = bounds.getCenter(new THREE.Vector3());
+      const offset = preset === 'top' ? new THREE.Vector3(0, 1, 0.01)
+        : preset === 'front' ? new THREE.Vector3(0, 0.28, 1) : DEFAULT_POSITION.clone().sub(DEFAULT_TARGET);
+      const backward = offset.normalize();
+      const forward = backward.clone().negate();
+      const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+      const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+      const tanV = Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov) / 2);
+      let distance = 1.6;
+      for (const corner of corners) {
+        const relative = corner.clone().sub(target);
+        distance = Math.max(distance, Math.abs(relative.dot(right)) / (tanV * aspect * 0.85) - relative.dot(forward),
+          Math.abs(relative.dot(up)) / (tanV * 0.76) - relative.dot(forward));
+      }
+      startTween(target, target.clone().addScaledVector(backward, distance));
+    };
 
     cameraBridge.reset = () => {
-      startTween(DEFAULT_TARGET, DEFAULT_POSITION);
+      frameBench('perspective');
     };
+    cameraBridge.view = (preset) => {
+      frameBench(preset);
+    };
+    frameBench('perspective');
     cameraBridge.focus = (position) => {
       const controls = controlsRef.current;
       if (!controls) return;
@@ -94,6 +129,7 @@ export function CameraRig() {
       ];
     };
     cameraBridge.getRenderStats = () => ({
+      frame: gl.info.render.frame,
       calls: gl.info.render.calls,
       triangles: gl.info.render.triangles,
       lines: gl.info.render.lines,
@@ -105,12 +141,13 @@ export function CameraRig() {
 
     return () => {
       cameraBridge.reset = () => undefined;
+      cameraBridge.view = () => undefined;
       cameraBridge.focus = () => undefined;
       cameraBridge.screenToTable = () => null;
       cameraBridge.worldToScreen = () => null;
       cameraBridge.getRenderStats = () => null;
     };
-  }, [camera, gl]);
+  }, [camera, gl, aspect, layoutKey]);
 
   useFrame((_, delta) => {
     const controls = controlsRef.current;
@@ -123,6 +160,7 @@ export function CameraRig() {
       controls.target.lerpVectors(tween.current.fromTarget, tween.current.toTarget, eased);
       controls.update();
       if (t >= 1) tween.current.active = false;
+      else invalidate();
     }
     // 限制平移目标，使实验台始终位于画面中心区域，且不会进入桌面内部。
     const beforeX = controls.target.x;
@@ -153,7 +191,7 @@ export function CameraRig() {
       zoomSpeed={0.75}
       minDistance={1.15}
       maxDistance={3.8}
-      minPolarAngle={0.34}
+      minPolarAngle={0.01}
       maxPolarAngle={1.34}
       onStart={() => {
         tween.current.active = false;

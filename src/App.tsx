@@ -9,6 +9,7 @@ import { SceneCanvas } from './three/SceneCanvas';
 import { cameraBridge } from './three/cameraBridge';
 import { useLabStore } from './store/labStore';
 import { writeLocalWorkspace } from './store/persistence';
+import { SimulationClock } from './circuit/simulation/transient';
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -26,13 +27,31 @@ export default function App() {
   const running = useLabStore((state) => state.transient.running);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  // RC 暂态由真实时间驱动，每 50 ms 推进一个 20 ms 的求解步。
+  // Fixed electrical steps follow visible wall time; rendering and delayed timers do not alter dt.
   useEffect(() => {
     if (!running) return;
+    const clock = new SimulationClock();
+    let previous = performance.now();
+    const resetTime = () => { previous = performance.now(); };
+    document.addEventListener('visibilitychange', resetTime);
     const interval = window.setInterval(() => {
-      useLabStore.getState().tickTransient();
+      const now = performance.now();
+      const elapsed = (now - previous) / 1000;
+      previous = now;
+      if (document.hidden) return;
+      const state = useLabStore.getState();
+      const { ticks, lag } = clock.consume(elapsed, state.transient.dt);
+      if (lag > 0.5) {
+        state.pauseTransient();
+        state.pushToast('warning', '暂态计算已暂停', '浏览器计算积压超过 0.5 s，已保留状态。可切换流畅画质后继续。');
+        return;
+      }
+      for (let tick = 0; tick < ticks; tick++) useLabStore.getState().tickTransient();
     }, 50);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', resetTime);
+    };
   }, [running]);
 
   // 事件驱动的防抖自动保存：只序列化可复现的电路状态，不保存求解缓存。

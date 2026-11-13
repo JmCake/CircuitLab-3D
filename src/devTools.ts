@@ -9,7 +9,7 @@ import { cameraBridge } from './three/cameraBridge';
 export function installDevTools(): void {
   if (!import.meta.env.DEV) return;
   const api = {
-    version: '0.1.0',
+    version: '0.2.0',
     store: useLabStore,
     camera: cameraBridge,
     portScreen(portId: string): [number, number] | null {

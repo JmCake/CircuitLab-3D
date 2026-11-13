@@ -1,11 +1,21 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { createServer } from 'node:net';
 import { chromium } from 'playwright-core';
 
 const ROOT = process.cwd();
 const OUT_DIR = path.join(ROOT, 'screenshots');
-const URL = process.env.CIRCUITLAB_URL ?? 'http://127.0.0.1:5173/';
+// Without an explicit URL, always test this checkout on a fresh port, never an unrelated running Vite.
+const PORT = process.env.CIRCUITLAB_URL ? null : await new Promise((resolve, reject) => {
+  const server = createServer();
+  server.on('error', reject);
+  server.listen(0, '127.0.0.1', () => {
+    const address = server.address();
+    server.close(() => resolve(address.port));
+  });
+});
+const URL = process.env.CIRCUITLAB_URL ?? `http://127.0.0.1:${PORT}/`;
 const CHROME_CANDIDATES = [
   process.env.CHROME_PATH,
   'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -42,11 +52,11 @@ async function serverReady() {
 }
 
 async function ensureDevServer() {
-  if (await serverReady()) return;
+  if (process.env.CIRCUITLAB_URL && await serverReady()) return;
   console.log('[check] starting Vite dev server');
   devServer = spawn(
     process.execPath,
-    ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', '5173', '--strictPort'],
+    ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(PORT ?? new globalThis.URL(URL).port), '--strictPort'],
     { cwd: ROOT, stdio: 'inherit' },
   );
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -400,7 +410,7 @@ async function runCheck(browser) {
   await shot(page, '06-all-instruments.png');
 
   // 逐个载入所有教学实验示范接线，验证统一求解器。
-  const labIds = ['ohms-law', 'series', 'parallel', 'kirchhoff', 'led', 'rc'];
+  const labIds = ['ohms-law', 'series', 'parallel', 'kirchhoff', 'led', 'rc', 'thevenin', 'superposition', 'max-power'];
   for (const labId of labIds) {
     const labState = await page.evaluate((id) => {
       const api = window.__circuitlab;

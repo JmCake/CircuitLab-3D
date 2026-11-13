@@ -1,7 +1,7 @@
 {
   "name": "circuitlab-3d",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CircuitLab-3D — 面向大学电路教学的交互式三维虚拟实验室",
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "test": "vitest run --pool=threads",
     "test:watch": "vitest --pool=threads",
     "test:e2e": "node scripts/browser-check.mjs",
+    "test:e2e:advanced": "node scripts/advanced-check.mjs",
     "check": "npm run typecheck && npm test && npm run build"
   },
   "engines": {

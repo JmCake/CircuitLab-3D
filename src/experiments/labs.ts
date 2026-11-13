@@ -9,6 +9,7 @@ import {
   type SimulationResult,
   type Wire,
 } from '../circuit';
+import { NETWORK_LABS, NETWORK_LAYOUTS, conservationCheck } from './networkLabs';
 
 export interface LabStepCheck {
   done: boolean;
@@ -299,7 +300,8 @@ function ledCurrentSafeCheck(context: LabContext): LabStepCheck {
   if (!led || !resistor) return { done: false, message: '需要 LED 与限流电阻。' };
   const element = elementOf(context, led);
   const current = element?.current ?? 0;
-  const safe = Boolean(element?.flags?.on) && current > 0.001 && current < 0.025;
+  const limit = Number(element?.flags?.maxCurrent ?? 0.02);
+  const safe = Boolean(element?.flags?.on) && current > 0.001 && current <= limit;
   return {
     done: safe,
     message: safe
@@ -501,17 +503,7 @@ export const LABS: LabDefinition[] = [
         id: 'balance',
         title: '核对数值平衡',
         instruction: '利用仿真节点电压核查每个闭合回路的电压代数和；改变电阻后观察电流重新分配。',
-        check: (context) => {
-          const rows = context.measurements.filter((row) => row.labId === 'kirchhoff');
-          const solved = context.result.solved && context.result.status === 'ok';
-          return {
-            done: solved && rows.length >= 3,
-            message:
-              solved && rows.length >= 3
-                ? '电路有唯一解，节点与回路测量数据可用于 KCL/KVL 核对。'
-                : '请先完成有源多支路接线并记录至少三组数据。',
-          };
-        },
+        check: conservationCheck,
       },
     ],
   },
@@ -521,7 +513,7 @@ export const LABS: LabDefinition[] = [
     title: 'LED 限流与导通',
     subtitle: '非线性元件 · 极性与安全电流',
     objective: '观察 LED 正向导通与反向截止，调限流电阻使 LED 工作在安全亮度范围，理解分段线性模型。',
-    formula: 'I_LED = (U − V_f) / R_d    ·    I ≤ I_max',
+    formula: 'U_LED = V_f + I·r_d    ·    I ≈ (U_s − V_f)/(R + r_d)',
     kit: ['power-supply', 'switch', 'resistor', 'led', 'ammeter', 'voltmeter'],
     modelNote: 'LED 使用 Vf + 14 Ω 的教学分段线性近似；真实器件的指数伏安特性和温度效应未建模。',
     steps: [
@@ -559,7 +551,7 @@ export const LABS: LabDefinition[] = [
     objective: '搭建电阻—电容串联电路，启动后向欧拉暂态仿真，观察电容电压指数上升并验证时间常数。',
     formula: 'u_C(t) = U_s(1 − e^(−t/RC))    ·    τ = RC',
     kit: ['power-supply', 'switch', 'resistor', 'capacitor', 'voltmeter', 'ammeter'],
-    modelNote: '电容采用理想电容 + 后向欧拉数值积分（步长 20 ms）；未建模介质吸收与等效串联电阻。',
+    modelNote: '理想电容 + 后向欧拉积分 2 ms、曲线采样 20 ms；小于积分步长的快速暂态精度受限。开关断开后主要通过电压表的 10 MΩ 输入放电，并非仍以原 R 放电。',
     steps: [
       {
         id: 'kit',
@@ -593,13 +585,14 @@ export const LABS: LabDefinition[] = [
       },
     ],
   },
+  ...NETWORK_LABS,
 ];
 
 export function getLab(labId: string): LabDefinition {
   return LABS.find((lab) => lab.id === labId) ?? LABS[0];
 }
 
-interface BuildComponentSpec {
+export interface BuildComponentSpec {
   alias: string;
   type: ComponentType;
   position: [number, number];
@@ -607,12 +600,13 @@ interface BuildComponentSpec {
   params?: ParamBag;
 }
 
-interface LabBuildSpec {
+export interface LabBuildSpec {
   components: BuildComponentSpec[];
   wires: [string, string, string, string][];
 }
 
 const LAB_LAYOUTS: Record<string, LabBuildSpec> = {
+  ...NETWORK_LAYOUTS,
   'ohms-law': {
     components: [
       { alias: 'ps', type: 'power-supply', position: [-0.58, -0.16], rotationY: 0.055, params: { voltage: 6 } },

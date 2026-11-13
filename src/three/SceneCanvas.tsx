@@ -5,6 +5,7 @@ import { COMPONENT_DEFINITIONS, type ComponentType } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { cameraBridge } from './cameraBridge';
 import { SceneRoot } from './SceneRoot';
+import { useViewStore } from '../store/viewStore';
 
 function supportsWebGL2(): boolean {
   try {
@@ -16,6 +17,7 @@ function supportsWebGL2(): boolean {
 }
 
 export function SceneCanvas() {
+  const quality = useViewStore(s => s.quality);
   const containerRef = useRef<HTMLDivElement>(null);
   const [webgl2] = useState(supportsWebGL2);
   const addComponent = useLabStore((state) => state.addComponent);
@@ -68,9 +70,10 @@ export function SceneCanvas() {
       onDrop={handleDrop}
     >
       <Canvas
-        shadows
-        dpr={[1, 1.75]}
-        camera={{ position: [1.78, 1.62, 2.55], fov: 42, near: 0.04, far: 30 }}
+        shadows={quality === 'fine'}
+        frameloop="demand"
+        dpr={quality === 'fine' ? [1, 1.5] : 1}
+        camera={{ position: [0.64, 0.78, 1.62], fov: 42, near: 0.04, far: 30 }}
         gl={{
           antialias: true,
           alpha: false,

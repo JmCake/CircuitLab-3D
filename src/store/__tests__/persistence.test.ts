@@ -1,8 +1,40 @@
 import { describe, expect, it } from 'vitest';
-import { buildLabCircuit } from '../../experiments/labs';
+import { buildLabCircuit, LABS } from '../../experiments/labs';
 import { makeWorkspacePayload, validateWorkspace } from '../persistence';
 
 describe('实验工程持久化校验', () => {
+  function payload() {
+    return makeWorkspacePayload({ ...buildLabCircuit('ohms-law', true), measurements: [], activeLabId: 'ohms-law', mode: 'guided' });
+  }
+  it('拒绝重复组件 ID，而非在构建 Set 后丢失重复信息', () => {
+    const value = payload();
+    value.components.push({ ...value.components[0] });
+    expect(validateWorkspace(value)).toBeNull();
+  });
+  it('拒绝存在组件下的不存在端口', () => {
+    const value = payload();
+    value.wires[0].fromPortId = value.components[0].id + ':nonexistent';
+    expect(validateWorkspace(value)).toBeNull();
+  });
+  it('拒绝重复导线与自连接', () => {
+    const value = payload();
+    value.wires.push({ ...value.wires[0], id: 'extra' });
+    expect(validateWorkspace(value)).toBeNull();
+    const self = payload();
+    self.wires[0].toPortId = self.wires[0].fromPortId;
+    expect(validateWorkspace(self)).toBeNull();
+  });
+  it('拒绝原型属性作为器材类型', () => {
+    const value = payload();
+    (value.components[0] as { type: string }).type = 'toString';
+    expect(validateWorkspace(value)).toBeNull();
+  });
+  it('全部九组实验的示范工程通过严格的真实端口与堆叠数校验', () => {
+    for (const lab of LABS) {
+      const value = makeWorkspacePayload({ ...buildLabCircuit(lab.id, true), measurements: [], activeLabId: lab.id, mode: 'guided' });
+      expect(validateWorkspace(value), lab.title).not.toBeNull();
+    }
+  });
   it('有效 v1 工作区可往返序列化', () => {
     const built = buildLabCircuit('ohms-law', true);
     const payload = makeWorkspacePayload({

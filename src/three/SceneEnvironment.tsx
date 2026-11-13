@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from 'react';
-import { ContactShadows, Environment, Lightformer, RoundedBox } from '@react-three/drei';
+import { ContactShadows, Environment, Lightformer, RoundedBox, SoftShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { LabelPlane, useDrawTexture } from './graphics';
 import { MATERIALS } from './materials';
+import { StaticGeometryBatch } from './StaticGeometryBatch';
+import { useViewStore } from '../store/viewStore';
 
 function seededRandom(seed: number): () => number {
   let value = seed >>> 0;
@@ -533,11 +535,11 @@ function WhiteboardTexture() {
 function RoomLighting() {
   return (
     <>
-      <ambientLight intensity={0.12} color="#fffaf0" />
-      <hemisphereLight args={['#fff5e5', '#4b504e', 0.52]} />
+      <ambientLight intensity={0.2} color="#fffaf0" />
+      <hemisphereLight args={['#f6f7f0', '#5a6061', 0.8]} />
       <directionalLight
         position={[2.4, 3.6, 2.6]}
-        intensity={2.55}
+        intensity={2.4}
         color="#fff2dd"
         castShadow
         shadow-mapSize-width={2048}
@@ -584,15 +586,19 @@ function RoomLighting() {
 }
 
 export function SceneEnvironment() {
+  const quality = useViewStore(s => s.quality);
   return (
     <>
+      {quality === 'fine' && <SoftShadows size={4} samples={24} focus={0.4} />}
       <color attach="background" args={['#dcd8d0']} />
       <fog attach="fog" args={['#ddd9d1', 6.2, 13]} />
       <RoomLighting />
-      <Floor />
-      <SoftFloorShadow />
-      <LabWall />
-      <Bench />
+      <StaticGeometryBatch>
+        <Floor />
+        <SoftFloorShadow />
+        <LabWall />
+        <Bench />
+      </StaticGeometryBatch>
       <ContactShadows
         position={[0, -0.788, 0]}
         scale={[3.2, 2.1]}

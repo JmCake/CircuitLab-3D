@@ -19,6 +19,8 @@ import type { Diagnostic, MeasurementRow } from '../circuit';
 import { getLab } from '../experiments/labs';
 import { useLabStore } from '../store/labStore';
 import { validateWorkspace } from '../store/persistence';
+import { NetworkAnalysisPanel } from './NetworkAnalysisPanel';
+import { measurementIssue } from '../circuit/measurement';
 import {
   formatCurrent,
   formatResistance,
@@ -83,11 +85,13 @@ function TransientChart() {
   const resumeTransient = useLabStore((state) => state.resumeTransient);
   const pauseTransient = useLabStore((state) => state.pauseTransient);
   const resetTransient = useLabStore((state) => state.resetTransient);
+  const setParam = useLabStore((state) => state.setParam);
   const capacitor = components.find((component) => component.type === 'capacitor');
   const resistor = components.find((component) => component.type === 'resistor');
   const supply = components.find(
     (component) => component.type === 'power-supply' && Boolean(component.params.enabled),
   );
+  const dischargeSupply = components.find(c => c.type === 'power-supply');
 
   if (!capacitor) {
     return (
@@ -114,21 +118,24 @@ function TransientChart() {
       : null;
   const targetVoltage = Math.abs(Number(supply?.params.voltage ?? 5));
   const maxVoltage = Math.max(targetVoltage, ...values, 0.01);
+  const minVoltage = Math.min(0, ...values);
   const width = 310;
   const height = 96;
   const paddingX = 8;
   const paddingY = 10;
-  const maxTime = Math.max(0.02, transient.time);
+  const minTime = transient.samples[0]?.time ?? 0;
+  const maxTime = Math.max(minTime + 0.02, transient.time);
   const chartPoints = values.map((value, index) => {
     const t = transient.samples[index]?.time ?? 0;
-    const x = paddingX + (t / maxTime) * (width - paddingX * 2);
-    const y = height - paddingY - (value / maxVoltage) * (height - paddingY * 2);
+    const x = paddingX + ((t - minTime) / (maxTime - minTime)) * (width - paddingX * 2);
+    const y = height - paddingY - ((value - minVoltage) / (maxVoltage - minVoltage)) * (height - paddingY * 2);
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
   const linePoints = chartPoints.join(' ');
+  const zeroY = height - paddingY - ((0 - minVoltage) / (maxVoltage - minVoltage)) * (height - paddingY * 2);
   const areaPoints =
     values.length > 1
-      ? `${paddingX},${height - paddingY} ${linePoints} ${width - paddingX},${height - paddingY}`
+      ? `${paddingX},${zeroY} ${linePoints} ${width - paddingX},${zeroY}`
       : '';
   const currentVoltage = transient.active
     ? transient.capacitorVoltages[capacitor.id] ?? 0
@@ -149,7 +156,7 @@ function TransientChart() {
           <strong>{formatTime(transient.time)}</strong>
         </div>
         <div>
-          <span>理论 τ = RC</span>
+          <span>名义 RC（不含仪表）</span>
           <strong>{tau !== null ? formatTime(tau) : '—'}</strong>
         </div>
         <div>
@@ -186,7 +193,7 @@ function TransientChart() {
               className="chart-line is-empty"
             />
           )}
-          <text x={paddingX} y={height - 1} className="chart-label">0 s</text>
+          <text x={paddingX} y={height - 1} className="chart-label">{minTime.toFixed(2)} s</text>
           <text x={width - paddingX} y={height - 1} textAnchor="end" className="chart-label">
             {maxTime.toFixed(2)} s
           </text>
@@ -195,7 +202,7 @@ function TransientChart() {
       </div>
       <div className="chart-legend">
         <span><i />电容端电压</span>
-        <span>{transient.samples.length} 个采样点 · Δt 20 ms</span>
+        <span>{transient.samples.length} 点 · 采样 20 ms / 积分 2 ms</span>
       </div>
       <div className="button-row wrap">
         {!transient.active ? (
@@ -223,9 +230,20 @@ function TransientChart() {
           <RotateCcw size={14} />
           重置
         </button>
+        <button type="button" className="button button-ghost compact" disabled={!transient.active || !dischargeSupply}
+          onClick={() => { if (dischargeSupply) { setParam(dischargeSupply.id, 'enabled', true); setParam(dischargeSupply.id, 'voltage', 0); } }}>
+          电源置 0 V 放电
+        </button>
+        <button type="button" className="button button-ghost compact" disabled={transient.samples.length < 2}
+          onClick={() => {
+            const caps = components.filter(c => c.type === 'capacitor');
+            const lines = [['仿真时间(s)', ...caps.map(c => `${c.name}电压(V)`)].map(csvEscape).join(',')];
+            for (const sample of transient.samples) lines.push([sample.time, ...caps.map(c => sample.values[c.id] ?? null)].map(csvEscape).join(','));
+            downloadText('circuitlab-transient.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8');
+          }}><Download size={14} />导出曲线 CSV</button>
       </div>
       <p className="param-help">
-        后向欧拉步长 20 ms；电压、电流读数来自当前拓扑的每一步数值解，不使用预置曲线。
+        后向欧拉积分 2 ms、采样 20 ms。前台按实际时间推进，后台冻结，积压时暂停。快速暂态精度受限；放电按钮令电源电动势为零并保留内阻。曲线最多保留最近 1200 点。
       </p>
     </div>
   );
@@ -246,6 +264,7 @@ export function DataPanel() {
   const fileInput = useRef<HTMLInputElement>(null);
   const lab = getLab(activeLabId);
   const labRows = measurements.filter((row) => row.labId === activeLabId);
+  const recordingIssue = measurementIssue(components, result);
 
   const supply = components.find((component) => component.type === 'power-supply');
   const ammeter = components.find((component) => component.type === 'ammeter');
@@ -337,7 +356,8 @@ export function DataPanel() {
           type="button"
           className="button button-primary"
           onClick={recordMeasurement}
-          disabled={!result.solved}
+          disabled={Boolean(recordingIssue)}
+          title={recordingIssue ?? '记录当前有效测量值'}
         >
           <Plus size={15} />
           记录当前读数
@@ -348,10 +368,11 @@ export function DataPanel() {
         </button>
       </div>
       <p className="data-note">
-        记录值直接取自当前仿真快照；若修改接线或参数，请重新记录。教学判定会同时检查拓扑与数值。
+        {recordingIssue ?? '记录值直接取自当前仿真快照；若修改接线或参数，请重新记录。教学判定会同时检查拓扑与数值。'}
       </p>
 
       <TransientChart />
+      <NetworkAnalysisPanel />
 
       <div className="panel-card">
         <div className="panel-card-title">

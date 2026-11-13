@@ -871,13 +871,17 @@ function measureElementResults(
         const segmentB = Math.max(MIN_RESISTANCE, maxResistance * (1 - position));
         const voltageAW = port('a') - port('w');
         const currentAW = voltageAW / segmentA;
+        const voltageBW = port('b') - port('w');
+        const currentBW = voltageBW / segmentB;
         element.voltage = voltageAW;
         element.current = currentAW;
-        element.power = Math.abs(voltageAW * currentAW);
+        element.power = voltageAW * currentAW + voltageBW * currentBW;
         element.flags = {
           segmentA,
           segmentB,
           position,
+          currentAW,
+          currentBW,
         };
         break;
       }
@@ -894,7 +898,8 @@ function measureElementResults(
             0,
           );
           element.current = conductance * (voltage - previous);
-          element.power = Math.abs(voltage * element.current);
+          // Passive sign convention: a discharging capacitor delivers power (negative p).
+          element.power = voltage * element.current;
           capacitorVoltages[component.id] = voltage;
           const rating = sanitizePositive(component.params.voltageRating, 25);
           if (Math.abs(voltage) > rating) {
@@ -911,6 +916,10 @@ function measureElementResults(
         }
         element.reading = voltage;
         element.readingUnit = 'V';
+        if (voltage < -0.1) {
+          addDiagnostic({ code: 'capacitor-reverse-polarity', level: 'warning',
+            message: `${component.name} 正极相对负极为 ${voltage.toFixed(2)} V，极性电容反接。`, componentIds: [component.id] });
+        }
         break;
       }
       case 'led': {
@@ -931,6 +940,7 @@ function measureElementResults(
           model: 'piecewise-linear',
           forwardVoltage: spec.vf,
           dynamicResistance: spec.rd,
+          maxCurrent: spec.maxCurrent,
           color: spec.color,
         };
         if (current > spec.maxCurrent) {

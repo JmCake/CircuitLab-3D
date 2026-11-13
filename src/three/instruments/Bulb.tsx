@@ -7,6 +7,7 @@ import { getGlowTexture, LabelPlane } from '../graphics';
 import { MATERIALS } from '../materials';
 import { InstrumentFeet, Port3D, Screw } from '../parts';
 import type { InstrumentModelProps } from './types';
+import { useAnimationWake } from '../useAnimationWake';
 
 function Filament({
   materialRef,
@@ -52,9 +53,11 @@ export function Bulb({ component, element }: InstrumentModelProps) {
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const smooth = useRef(0);
   const target = Math.min(1.4, Math.max(0, element?.brightness ?? 0));
+  useAnimationWake(target);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     smooth.current = THREE.MathUtils.damp(smooth.current, target, 7, delta);
+    if (Math.abs(smooth.current - target) > 0.0001) state.invalidate();
     const level = smooth.current;
     if (filamentMaterial.current) {
       filamentMaterial.current.emissiveIntensity = 0.08 + level * 8;

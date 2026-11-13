@@ -8,6 +8,7 @@ import { LabelPlane, useDrawTexture } from '../graphics';
 import { MATERIALS } from '../materials';
 import { InstrumentFeet, Port3D, Screw } from '../parts';
 import type { InstrumentModelProps } from './types';
+import { useAnimationWake } from '../useAnimationWake';
 
 function Winding() {
   const geometry = useMemo(() => {
@@ -84,10 +85,12 @@ export function Rheostat({ component }: InstrumentModelProps) {
   const beginControl = useLabStore((state) => state.beginControl);
   const carriage = useRef<THREE.Group>(null);
   const targetX = -0.095 + position * 0.19;
+  useAnimationWake(targetX);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!carriage.current) return;
     carriage.current.position.x = THREE.MathUtils.damp(carriage.current.position.x, targetX, 18, delta);
+    if (Math.abs(carriage.current.position.x - targetX) > 0.00001) state.invalidate();
   });
 
   const startSlide = (event: ThreeEvent<PointerEvent>) => {

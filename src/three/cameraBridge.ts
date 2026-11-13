@@ -1,4 +1,5 @@
 export interface RenderStats {
+  frame: number;
   calls: number;
   triangles: number;
   lines: number;
@@ -9,6 +10,7 @@ export interface RenderStats {
 }
 
 export interface CameraBridge {
+  view: (preset: 'perspective' | 'top' | 'front') => void;
   reset: () => void;
   focus: (position: [number, number]) => void;
   screenToTable: (clientX: number, clientY: number) => [number, number] | null;
@@ -21,6 +23,7 @@ export interface CameraBridge {
  * 它只做视角/落点换算，不承载实验状态。
  */
 export const cameraBridge: CameraBridge = {
+  view: () => undefined,
   reset: () => undefined,
   focus: () => undefined,
   screenToTable: () => null,
