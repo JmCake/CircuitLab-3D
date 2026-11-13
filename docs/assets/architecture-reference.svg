@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 720" role="img" aria-label="CircuitLab-3D 技术架构参考图">
+  <title>CircuitLab-3D 技术架构</title>
+  <desc>React 与 TypeScript 管理实验界面；Three.js 与 React Three Fiber 在 WebGL 2 上实现三维器材建模和渲染；独立电路图及 MNA 仿真引擎计算电学结果；最终同步实验反馈。</desc>
+  <defs>
+    <style>
+      text { font-family: "Noto Sans CJK SC", "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif; fill: #16191f; text-anchor: middle; }
+      .title { font-size: 31px; font-weight: 700; }
+      .main { font-size: 30px; font-weight: 700; }
+      .detail { font-size: 21px; fill: #646a72; }
+      .line { stroke: #9aa1ab; stroke-width: 3; fill: none; stroke-linecap: round; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9aa1ab"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="720" fill="#fcfcfd"/>
+  <rect x="18" y="18" width="1364" height="684" rx="23" fill="#ffffff" stroke="#dedfe2" stroke-width="1.5"/>
+  <text x="700" y="86" class="main">React + TypeScript</text>
+  <text x="700" y="124" class="detail">实验界面、器材库、参数配置、数据记录</text>
+  <path class="line" d="M700 147 V180" marker-end="url(#arrow)"/>
+  <rect x="42" y="194" width="651" height="122" rx="15" fill="#edf3fc" stroke="#d1d9e6"/>
+  <text x="367" y="244" class="main">Three.js + R3F</text>
+  <text x="367" y="285" class="detail">3D 场景和器材代码建模</text>
+  <rect x="707" y="194" width="651" height="122" rx="15" fill="#edf3fc" stroke="#d1d9e6"/>
+  <text x="1033" y="244" class="main">WebGL 2</text>
+  <text x="1033" y="285" class="detail">底层 GPU 三维渲染</text>
+  <text x="700" y="336" class="detail" style="font-size:16px">WebGL 2 是 Three.js 的底层绘图接口</text>
+  <path class="line" d="M700 350 V388" marker-end="url(#arrow)"/>
+  <text x="700" y="437" class="main">电路连接图 + 仿真计算引擎</text>
+  <text x="700" y="476" class="detail">节点拓扑、基尔霍夫定律、改进节点分析法（MNA）</text>
+  <path class="line" d="M700 499 V540" marker-end="url(#arrow)"/>
+  <rect x="105" y="558" width="1190" height="119" rx="17" fill="#eaf5ef" stroke="#cfdfd6"/>
+  <text x="700" y="607" class="main">实验结果实时同步</text>
+  <text x="700" y="650" class="detail">灯光变化、仪表读数、电路状态、错误反馈</text>
+</svg>
