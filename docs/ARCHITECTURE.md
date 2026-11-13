@@ -20,7 +20,7 @@ flowchart TD
     UI --> SAVE[版本化实验 JSON / CSV]
 ~~~
 
-用户原始示意图：![架构图](assets/architecture-reference.svg)
+依据用户原始示意图重绘的矢量版：![架构图](assets/architecture-reference.svg)
 
 ## 2. 拟定模块边界
 
