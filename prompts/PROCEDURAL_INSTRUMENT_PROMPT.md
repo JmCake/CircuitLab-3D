@@ -1,6 +1,6 @@
 # CircuitLab-3D｜单件实验仪器程序化 3D 建模提示词
 
-> 与 `MASTER_PROJECT_PROMPT.md` 联用。本文件用于未来**逐一**打磨电源、电表、开关、电阻等模型。当前只保存提示词，不实施代码。
+> 与 `MASTER_PROJECT_PROMPT.md` 联用。本文件用于按照统一规范继续打磨电源、电表、开关、电阻等模型。2026-11-13 已落地十一类器材；本文件保留为后续精修标准，当前实现见 [../docs/IMPLEMENTATION_STATUS.md](../docs/IMPLEMENTATION_STATUS.md)。
 
 ## 通用可复制提示词
 
