@@ -1090,7 +1090,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         transient: makeTransientRuntime(),
         result,
       });
-      toast('info', 'RC 暂态已重置', '电容初始电压恢复为 0 V。');
+      toast('info', 'RC 暂态已重置', '已返回直流稳态；再次启动暂态时使用 0 V 初始条件。');
     },
 
     tickTransient: () => {

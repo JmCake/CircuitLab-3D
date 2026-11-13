@@ -50,7 +50,9 @@ jobs:
         run: npm run test:e2e:advanced
       - name: Save browser evidence
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: browser-evidence
           path: screenshots/
+          retention-days: 3
