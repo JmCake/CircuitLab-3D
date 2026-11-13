@@ -48,10 +48,13 @@ CircuitLab-3D 旨在面向**大学电路基础教学**，建设基于浏览器�
 - [实验课程与器材规划](docs/EXPERIMENTS.md)
 - [验收与测试标准](docs/ACCEPTANCE.md)
 - [风险、边界与待定决策](docs/DECISIONS.md)
+- [公开 3D 提示词研究与本项目写法](docs/AI_3D_PROMPT_RESEARCH.md)
+- [AI 开发总提示词（未来开发时使用）](prompts/MASTER_PROJECT_PROMPT.md)
+- [单件实验仪器程序化建模提示词](prompts/PROCEDURAL_INSTRUMENT_PROMPT.md)
 
 ## 当前阶段交付物
 
-仅上述 Markdown 规划文件与架构参考图片。**没有 `src/`、`package.json`、构建产物或在线体验入口**。
+仅 Markdown 规划文件、AI 开发提示词与架构参考图片。**没有 `src/`、`package.json`、构建产物或在线体验入口**。
 
 ---
 
