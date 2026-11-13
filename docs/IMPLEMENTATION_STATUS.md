@@ -102,13 +102,17 @@
 - CSV 下载文件名 `circuitlab-rc-measurements.csv`。
 - 帮助面板可开关；自由搭建模式面板可进入并返回指导实验。
 
-### 6.3 视觉检查
+### 6.3 远端 CI
+
+GitHub Actions `CI` 工作流已在 Ubuntu / Node.js 22 上通过（commit `03deb33`，run `43457207100`）：`npm ci`、TypeScript 类型检查、35 个测试、Vite 生产构建全部成功。浏览器 E2E 仍为本地 Windows Chrome/SwiftShader 验收，不纳入当前 CI。
+
+### 6.4 视觉检查
 
 使用系统 Chrome `ANGLE + SwiftShader` 在 1600×1000 视口检查了：默认全景、仪器正面/45°近景、接线状态、仪表读数、LED 点亮、小灯泡点亮、全部器材总览、RC 曲线与帮助面板。截图保存在 [`docs/media/`](media/)。
 
 开发过程中另外通过隔离浏览器脚本检查了：电阻箱四只十进制旋钮点击、变阻器滑片水平拖动、LED/灯泡亮度由元素结果驱动。由于 3D 屏幕投影在软件渲染下速度很低，这些检查保留为视觉/人工验证，不放进必须通过的 CI 脚本。
 
-### 6.4 构建与实际渲染统计
+### 6.5 构建与实际渲染统计
 
 命令：`npm run build`，通过。Vite 输出为 Three.js/R3F vendor、应用入口、icons 与 state 分块：`three-*.js` 约 1.20 MB（gzip 338 KB）、应用入口约 206 KB（gzip 61 KB）、CSS 45 KB（gzip 9.3 KB）。生产构建不包含空壳页面。
 

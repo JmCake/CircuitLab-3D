@@ -26,6 +26,7 @@
 | `npm run build` | 通过 | 生产构建成功，生成 dist/ |
 | `npm run test:e2e` | 通过 | 自动启动 Vite；使用系统 Chrome；采集截图并检查交互 |
 | `npm run check` | 通过 | typecheck + test + build 的串联命令 |
+| GitHub Actions `CI` | **通过** | commit `03deb33`，Ubuntu / Node 22，运行 ID `43457207100`；`npm ci`、typecheck、35 tests、build 全绿 |
 
 生产构建产物摘要（实际 `dist/` 输出）：
 

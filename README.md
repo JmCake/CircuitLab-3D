@@ -112,6 +112,7 @@ docs/                      需求、架构、实验、验收与实现记录
 - `npm test`：4 个测试文件、**35 个测试全部通过**；覆盖欧姆定律、串并联、开路、短路、浮置网络、仪表负载、LED 正反向、RC 暂态、面包板内部连通、变阻器、教学实验装配/步骤判定与持久化校验。
 - `npm run build`：通过；生产产物已生成。
 - `npm run test:e2e`：真实 Chromium/Chrome 通过 3D 旋钮拖动、摇板开关、端口拖线、撤销/重做、6 组教学实验、欧姆定律数据记录（实测 R≈999.9 Ω，教学进度 5/5）、RC 充电、CSV 下载、帮助/自由模式切换和刷新恢复。
+- GitHub Actions `CI`（commit `03deb33`）：在 Ubuntu / Node 22 上通过 `npm ci`、类型检查、35 个测试和生产构建。
 - 测试环境使用 **ANGLE + SwiftShader（软件 WebGL 2）**，截图因此不代表独立显卡或集成显卡的帧率。硬件 GPU 性能尚未在本环境完成确认；初测渲染统计约 438 draw calls / 4.5 万三角面（默认场景），详见 [ACCEPTANCE.md](docs/ACCEPTANCE.md)。
 
 ## 文档导航
