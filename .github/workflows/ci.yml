@@ -50,6 +50,8 @@ jobs:
         run: npm run test:e2e:advanced
       - name: Wire routing and rendered-mesh collision checks
         run: npm run test:e2e:wires
+      - name: Instrument consoles, acquisition and presentation checks
+        run: npm run test:e2e:instruments
       - name: Save browser evidence
         if: always()
         continue-on-error: true

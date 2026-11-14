@@ -241,7 +241,7 @@ function SwitchParam({
   );
 }
 
-function ParamControl({
+export function ParamControl({
   component,
   definition,
 }: {
@@ -268,6 +268,8 @@ function LiveValues({ component }: { component: LabComponent }) {
   if (!result.solved || !element) {
     return <div className="empty-inline">当前电路无有效读数</div>;
   }
+  if (component.type === 'multimeter') return <div className="live-values"><div className="value-tile"><span>仪表读数</span><strong>{element.flags?.invalidReading ? '—' : element.overRange || element.flags?.openCircuit ? 'OL' : element.readingUnit === 'Ω' ? formatResistance(element.reading) : element.readingUnit === 'A' ? formatCurrent(element.reading) : formatVoltage(element.reading)}</strong></div><div className="value-tile"><span>功能</span><strong>{String(component.params.mode).toUpperCase()}</strong></div></div>;
+  if (component.type === 'programmable-supply') return <div className="live-values">{[1, 2].map(ch => <div className="value-tile" key={ch}><span>CH{ch} · {String(element.flags?.[`mode${ch}`])}</span><strong>{formatVoltage(ch === 1 ? element.voltage : Number(element.flags?.voltage2))}</strong><strong>{formatCurrent(ch === 1 ? element.current : Number(element.flags?.current2))}</strong></div>)}</div>;
   const readingLabel = component.type === 'three-phase-source' ? '相电压 U_AN' :
     component.type === 'ammeter'
       ? '仪表读数'

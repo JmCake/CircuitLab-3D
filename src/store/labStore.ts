@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useScopeStore } from './scopeStore';
 import { advanceTransient, TRANSIENT_SAMPLE_DT, TRANSIENT_MAX_STEP } from '../circuit/simulation/transient';
 import { measurementIssue } from '../circuit/measurement';
 import {
@@ -656,6 +657,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
       const state = get();
       const component = state.components.find((item) => item.id === componentId);
       if (!component) return;
+      if (component.type === 'oscilloscope' && key === 'running' && value === false && component.params.running !== false) useScopeStore.getState().hold(componentId, { components: state.components, wires: state.wires, result: state.result, samples: state.transient.samples });
       if (record) pushSnapshot();
       const components = get().components.map((item) =>
         item.id === componentId
@@ -1021,9 +1023,11 @@ export const useLabStore = create<LabStore>()((set, get) => {
       const capacitor = findFirst('capacitor');
       const resistor = findFirst('resistor');
       const led = findFirst('led');
-      const supply = findFirst('power-supply');
+      const supply = findFirst('power-supply') ?? findFirst('programmable-supply');
+      const dmm = findFirst('multimeter');
+      const dmmResult = dmm ? state.result.elements[dmm.id] : undefined;
       const voltage =
-        (voltmeter ? state.result.elements[voltmeter.id]?.reading : undefined) ??
+        (voltmeter ? state.result.elements[voltmeter.id]?.reading : undefined) ?? (dmmResult?.readingUnit === 'V' ? dmmResult.reading : undefined) ??
         (capacitor
           ? state.result.elements[capacitor.id]?.voltage ?? state.transient.capacitorVoltages[capacitor.id]
           : undefined) ??
@@ -1031,18 +1035,18 @@ export const useLabStore = create<LabStore>()((set, get) => {
         (supply ? state.result.elements[supply.id]?.voltage : undefined) ??
         null;
       const current =
-        (ammeter ? state.result.elements[ammeter.id]?.reading : undefined) ??
+        (ammeter ? state.result.elements[ammeter.id]?.reading : undefined) ?? (dmmResult?.readingUnit === 'A' ? dmmResult.reading : undefined) ??
         (led ? state.result.elements[led.id]?.current : undefined) ??
         (resistor ? state.result.elements[resistor.id]?.current : undefined) ??
         (supply ? state.result.elements[supply.id]?.current : undefined) ??
         null;
-      if (voltage === null && current === null) {
+      if (voltage === null && current === null && dmmResult?.readingUnit !== 'Ω') {
         toast('warning', '暂时没有可记录的读数', '请接入仪表或形成完整测量回路。');
         return;
       }
       const finiteVoltage = typeof voltage === 'number' && Number.isFinite(voltage) ? voltage : null;
       const finiteCurrent = typeof current === 'number' && Number.isFinite(current) ? current : null;
-      const resistance =
+      const resistance = dmmResult?.readingUnit === 'Ω' ? dmmResult.reading ?? null :
         finiteVoltage !== null &&
         finiteCurrent !== null &&
         Math.abs(finiteCurrent) > 1e-9
@@ -1060,7 +1064,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         resistance,
         note:
           '由当前三维接线、仪器参数与实时电路仿真结果生成；未对记录值做人工修正。',
-        sourceComponentId: voltmeter?.id ?? ammeter?.id ?? capacitor?.id ?? supply?.id,
+        sourceComponentId: voltmeter?.id ?? ammeter?.id ?? dmm?.id ?? capacitor?.id ?? supply?.id,
         observation: captureObservation(state, state.result, state.referencePortId ?? (state.activeLabId === 'potentials' ? 'potentials-ps:negative' : null)),
       };
       set({ measurements: [...state.measurements, row], sideTab: 'data' });
@@ -1148,6 +1152,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
       }
       const nextCapacitors = result.capacitorVoltages ?? transient.capacitorVoltages;
       const values: Record<string, number> = { ...nextCapacitors };
+      for (const [id, voltage] of Object.entries(result.portVoltages ?? {})) values[`port:${id}`] = voltage;
       const samples = [...transient.samples, { time: nextTime, values }].slice(-1200);
       set({
         result,
@@ -1190,6 +1195,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
     },
 
     importWorkspace: (workspace) => {
+      useScopeStore.getState().reset();
       pushSnapshot();
       const result = simulateSafe(workspace.components, workspace.wires);
       set({

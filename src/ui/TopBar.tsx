@@ -3,14 +3,14 @@ import {
   HelpCircle,
   PanelLeftClose,
   PanelLeftOpen,
-  Redo2,
+  MonitorUp,
   Save,
   Sparkles,
-  Undo2,
   Waves,
 } from 'lucide-react';
 import { getLab } from '../experiments/labs';
 import { useLabStore } from '../store/labStore';
+import { useViewStore } from '../store/viewStore';
 
 function LogoMark() {
   return (
@@ -43,10 +43,6 @@ export function TopBar({ onOpenHelp }: { onOpenHelp: () => void }) {
   const setMode = useLabStore((state) => state.setMode);
   const libraryOpen = useLabStore((state) => state.libraryOpen);
   const setLibraryOpen = useLabStore((state) => state.setLibraryOpen);
-  const undo = useLabStore((state) => state.undo);
-  const redo = useLabStore((state) => state.redo);
-  const canUndo = useLabStore((state) => state.history.past.length > 0);
-  const canRedo = useLabStore((state) => state.history.future.length > 0);
   const saveLocal = useLabStore((state) => state.saveLocal);
   const activeLab = getLab(activeLabId);
 
@@ -90,28 +86,7 @@ export function TopBar({ onOpenHelp }: { onOpenHelp: () => void }) {
       </div>
 
       <div className="topbar-actions">
-        <div className="action-cluster">
-          <button
-            type="button"
-            className="icon-button"
-            onClick={undo}
-            disabled={!canUndo}
-            title="撤销 (Ctrl+Z)"
-            aria-label="撤销"
-          >
-            <Undo2 size={17} />
-          </button>
-          <button
-            type="button"
-            className="icon-button"
-            onClick={redo}
-            disabled={!canRedo}
-            title="重做 (Ctrl+Shift+Z)"
-            aria-label="重做"
-          >
-            <Redo2 size={17} />
-          </button>
-        </div>
+        <button className="button button-quiet" aria-label="数据大屏" title="数据大屏" onClick={() => useViewStore.getState().setDataScreen(true)}><MonitorUp size={18} /><span>演示</span></button>
         <button
           type="button"
           className="button button-quiet save-button"

@@ -13,14 +13,16 @@ const port = process.env.CIRCUITLAB_URL ? null : await new Promise((resolve, rej
 const url = process.env.CIRCUITLAB_URL ?? `http://127.0.0.1:${port}/`;
 let server;
 if (!process.env.CIRCUITLAB_URL) {
-  server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { stdio: 'ignore' });
+  let startup = '';
+  server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { stdio: ['ignore', 'pipe', 'pipe'] });
+  server.stdout.on('data', b => { startup = (startup + b).slice(-4000); }); server.stderr.on('data', b => { startup = (startup + b).slice(-4000); });
   let ready = false;
   for (let i = 0; i < 60; i++) {
     try { ready = (await fetch(url)).ok; } catch {}
     if (ready) break;
     await new Promise(resolve => setTimeout(resolve, 250));
   }
-  if (!ready) { server.kill(); throw new Error('Vite failed to start'); }
+  if (!ready) { server.kill(); throw new Error('Vite failed to start: ' + startup); }
 }
 const out = path.resolve(process.env.CIRCUITLAB_WIRE_OUT ?? 'screenshots/wire-fix');
 await fs.mkdir(out, { recursive: true });

@@ -5,6 +5,7 @@ import { LabelPlane, useDrawTexture } from './graphics';
 import { MATERIALS } from './materials';
 import { StaticGeometryBatch } from './StaticGeometryBatch';
 import { useViewStore } from '../store/viewStore';
+import { BENCH } from '../circuit';
 
 function seededRandom(seed: number): () => number {
   let value = seed >>> 0;
@@ -168,7 +169,7 @@ function SoftFloorShadow() {
 
 function Bench() {
   return (
-    <group>
+    <group scale={[BENCH.width / 2.24, 1, BENCH.depth / 1.16]}>
       <TableTop />
       <mesh position={[0, -0.056, 0]} castShadow material={MATERIALS.shellCharcoal}>
         <boxGeometry args={[2.255, 0.018, 1.175]} />

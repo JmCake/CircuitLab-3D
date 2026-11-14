@@ -8,6 +8,7 @@ export function terminalCurrents(component: LabComponent, result: SimulationResu
   const element = result.elements[component.id];
   if (!element) return {};
   const ports = getDefinition(component.type).ports;
+  if (['programmable-supply', 'multimeter', 'oscilloscope'].includes(component.type)) return Object.fromEntries(ports.map(p => [p.key, Number(element.flags?.[`terminal_${p.key}`] ?? 0)]));
   if (component.type === 'breadboard') return {};
   if (component.type === 'rheostat') {
     const ia = Number(element.flags?.currentAW ?? element.current);
@@ -43,7 +44,7 @@ export function auditCircuit(snapshot: CircuitSnapshot, result: SimulationResult
   for (const c of snapshot.components) {
     const e = result.elements[c.id];
     if (!e) continue;
-    if (c.type === 'power-supply') deliveredPower += e.power;
+    if (c.type === 'power-supply' || c.type === 'programmable-supply') deliveredPower += e.power;
     else absorbedPower += e.power;
     for (const [key, current] of Object.entries(terminalCurrents(c, result))) {
       const net = union.find(makePortId(c.id, key));
@@ -77,7 +78,7 @@ export interface TheveninResult {
 export function analyzeThevenin(snapshot: CircuitSnapshot, loadId: string): TheveninResult | null {
   const load = snapshot.components.find(c => c.id === loadId);
   if (!load || !['resistor', 'resistor-box', 'bulb'].includes(load.type) ||
-      snapshot.components.some(c => ['led', 'capacitor', 'bulb', 'three-phase-source'].includes(c.type))) return null;
+      snapshot.components.some(c => ['led', 'capacitor', 'bulb', 'three-phase-source', 'programmable-supply', 'multimeter', 'oscilloscope'].includes(c.type))) return null;
   const keys = getDefinition(load.type).ports;
   // Reuse the load ID/port keys so junctions with several stacked leads stay connected.
   const probeId = '__analysis_probe__';
@@ -110,7 +111,7 @@ export function analyzeThevenin(snapshot: CircuitSnapshot, loadId: string): Thev
 /** Linearity check with independent sources suppressed, not physically switched off/opened. */
 export function analyzeSuperposition(snapshot: CircuitSnapshot, targetId: string) {
   const sources = snapshot.components.filter(c => c.type === 'power-supply' && c.params.enabled);
-  if (sources.length < 2 || snapshot.components.some(c => ['led', 'capacitor', 'bulb', 'three-phase-source'].includes(c.type))) return null;
+  if (sources.length < 2 || snapshot.components.some(c => ['led', 'capacitor', 'bulb', 'three-phase-source', 'programmable-supply', 'multimeter', 'oscilloscope'].includes(c.type))) return null;
   const full = simulateCircuit(snapshot);
   if (!full.solved || full.status === 'error' || !full.elements[targetId]) return null;
   const contributions = sources.map(source => {

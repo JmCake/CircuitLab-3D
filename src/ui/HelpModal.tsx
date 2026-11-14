@@ -137,7 +137,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
                 三维器材、桌面、光照与导线均由 Three.js 代码程序化生成。
               </p>
             </div>
-            <span className="help-version">v0.3.0</span>
+            <span className="help-version">v0.4.0</span>
           </section>
 
           <div className="help-footer-hint">

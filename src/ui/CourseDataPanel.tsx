@@ -96,7 +96,7 @@ function KirchhoffPanel() {
   </>;
 }
 
-export function CourseDataPanel() {
+export function CourseDataPanel({ presentation = false }: { presentation?: boolean }) {
   const state = useLabStore;
   const id = useLabStore(s => s.activeLabId), components = useLabStore(s => s.components), wires = useLabStore(s => s.wires), result = useLabStore(s => s.result), measurements = useLabStore(s => s.measurements);
   const rows = useMemo(() => measurements.filter(r => r.labId === id), [measurements, id]);
@@ -110,7 +110,7 @@ export function CourseDataPanel() {
   const am = components.find(c => c.type === 'ammeter'), vm = components.find(c => c.type === 'voltmeter');
   const additive = superpositionEvidence(rows), measuredEq = theveninEvidence(rows);
   const specimen = components.find(c => c.id === 'iv-characteristics-r1');
-  const fields = rows.map(courseRecordFields), columns = Object.keys(fields[0] ?? {}).slice(0, id.startsWith('three-phase-') ? 5 : 4);
+  const fields = rows.map(courseRecordFields), columns = Object.keys(fields[0] ?? {}).slice(0, presentation ? undefined : id.startsWith('three-phase-') ? 5 : 4);
   const formatCell = (value: string | number | null | undefined) => typeof value === 'number' ? Number(value.toPrecision(5)).toString() : value ?? '—';
   const setSources = (kind: 'both' | 'one' | 'two' | 'scale') => {
     state.getState().beginTransaction();
@@ -123,7 +123,7 @@ export function CourseDataPanel() {
   };
   const exportCsv = () => {
     const url = URL.createObjectURL(new Blob([courseCsv(rows)], { type: 'text/csv;charset=utf-8' }));
-    const a = document.createElement('a'); a.href = url; a.download = `circuitlab-${id}.csv`; a.click(); URL.revokeObjectURL(url);
+    const a = document.createElement('a'); a.href = url; a.download = `circuitlab-${id}.csv`; a.click(); window.setTimeout(() => URL.revokeObjectURL(url), 10000);
   };
   return <div className="panel-stack course-data" aria-label="本实验测量">
     <h2>{lab.title}</h2>
@@ -139,6 +139,7 @@ export function CourseDataPanel() {
     {!id.startsWith('three-phase-') && <div className="course-metrics">{vm && <div><span>电压表</span><strong>{formatVoltage(result.elements[vm.id]?.reading)}</strong></div>}{am && <div><span>电流表</span><strong>{formatCurrent(result.elements[am.id]?.reading)}</strong></div>}</div>}
     <div className="course-controls"><button type="button" className="button button-primary" disabled={!!issue} onClick={() => state.getState().recordMeasurement()}><Plus size={15} />记录当前读数</button><button type="button" className="button button-ghost" disabled={!rows.length} onClick={exportCsv}><Download size={14} />导出 CSV</button></div>
     {issue && <p className="course-issue" role="status">{issue}</p>}
+    <div className="course-results"><div className="lesson-analysis">
     {id === 'iv-characteristics' && <Plot label="电阻与小灯泡伏安特性测量曲线" xTitle="U / V" yTitle="I / mA" series={['resistor', 'bulb'].map((type, index) => ({ name: index ? '小灯泡' : '电阻', color: index ? '#b4893f' : '#3d786a', points: distinctRows(rows, id, type).filter(r => r.voltage !== null && r.current !== null).map(r => ({ x: r.voltage!, y: r.current! * 1000 })) }))} />}
     {id === 'potentials' && <PotentialPanel />}
     {id === 'kirchhoff' && <KirchhoffPanel />}
@@ -152,8 +153,10 @@ export function CourseDataPanel() {
       { name: '测量', color: '#b4893f', connect: false, points: rows.filter(r => r.observation?.values.maxPower).map(r => ({ x: Number(r.observation!.settings['max-power-load.resistance']) / r.observation!.values.theveninR, y: r.observation!.values['p:max-power-load'] / r.observation!.values.maxPower })) },
     ]} /></>}
     {id.startsWith('three-phase-') && <ThreePhasePanel />}
+    </div>
     <section className="course-records"><h3>记录 <span>{rows.length}</span></h3>
-      {rows.length ? <div className="measurement-table-wrap"><table className="measurement-table"><thead><tr>{columns.map(c => <th key={c}>{c}</th>)}<th /></tr></thead><tbody>{rows.slice(-12).map((r: MeasurementRow) => { const f = courseRecordFields(r); return <tr key={r.id}>{columns.map(c => <td key={c}>{formatCell(f[c])}</td>)}<td><button className="icon-button tiny" type="button" aria-label="删除测量记录" onClick={() => state.getState().deleteMeasurement(r.id)}><Trash2 size={13} /></button></td></tr>; })}</tbody></table></div> : <div className="empty-inline">暂无测量记录</div>}
+      {rows.length ? <div className="measurement-table-wrap"><table className="measurement-table"><thead><tr>{columns.map(c => <th key={c}>{c}</th>)}<th /></tr></thead><tbody>{(presentation ? rows : rows.slice(-12)).map((r: MeasurementRow) => { const f = courseRecordFields(r); return <tr key={r.id}>{columns.map(c => <td key={c}>{formatCell(f[c])}</td>)}<td><button className="icon-button tiny" type="button" aria-label="删除测量记录" onClick={() => state.getState().deleteMeasurement(r.id)}><Trash2 size={13} /></button></td></tr>; })}</tbody></table></div> : <div className="empty-inline">暂无测量记录</div>}
     </section>
+    </div>
   </div>;
 }

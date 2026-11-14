@@ -78,7 +78,7 @@ describe('导线三维避障与圆角安全', () => {
     verifyClear(after, [box('mover')]);
   });
   it('仪器堵住桌面通道时可以从上方绕过', () => {
-    const components = [-0.5, -0.25, 0, 0.25, 0.5].map((z, i) => box(`wall-${i}`, 0, z));
+    const components = [-0.65, -0.4, -0.15, 0.1, 0.35, 0.6].map((z, i) => box(`wall-${i}`, 0, z));
     const route = routeWire(createWireRoutingScene(components), anchor(-0.7, 0.06, 0, [1, 0, 0]), anchor(0.7, 0.06, 0, [-1, 0, 0]));
     expect(route?.mode).toBe('overhead');
     verifyClear(route!, components);

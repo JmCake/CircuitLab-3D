@@ -8,6 +8,9 @@
 export type ComponentType =
   | 'power-supply'
   | 'three-phase-source'
+  | 'programmable-supply'
+  | 'multimeter'
+  | 'oscilloscope'
   | 'ammeter'
   | 'voltmeter'
   | 'resistor'

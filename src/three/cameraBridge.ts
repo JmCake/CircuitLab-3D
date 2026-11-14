@@ -12,6 +12,8 @@ export interface RenderStats {
 export interface CameraBridge {
   view: (preset: 'perspective' | 'top' | 'front') => void;
   reset: () => void;
+  pan: (horizontal: number, vertical: number) => void;
+  getPose: () => { position: number[]; target: number[] } | null;
   focus: (position: [number, number]) => void;
   screenToTable: (clientX: number, clientY: number) => [number, number] | null;
   worldToScreen: (point: [number, number, number]) => [number, number] | null;
@@ -25,6 +27,8 @@ export interface CameraBridge {
 export const cameraBridge: CameraBridge = {
   view: () => undefined,
   reset: () => undefined,
+  pan: () => undefined,
+  getPose: () => null,
   focus: () => undefined,
   screenToTable: () => null,
   worldToScreen: () => null,

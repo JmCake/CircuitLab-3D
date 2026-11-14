@@ -11,6 +11,7 @@ import { makePortId } from '../types';
 import { solveLinearSystem } from './linalg';
 import { UnionFind, UnionFindNumbers } from './unionFind';
 import { simulateAC } from './ac';
+import { isBenchInstrument, simulateInstruments } from './instruments';
 import { lampOperatingPoint } from './lamp';
 
 const LED_SPECS: Record<string, { vf: number; rd: number; color: string; maxCurrent: number }> = {
@@ -372,8 +373,10 @@ function stampCircuit(context: StampContext): Diagnostic[] {
           sanitizePositive(component.params.internalResistance, 0.2),
         );
         const conductance = 1 / internalResistance;
-        stampConductance(context, positive, negative, conductance);
-        stampCurrentSource(context, negative, positive, voltage / internalResistance);
+        const limit = Number(component.params.currentLimit);
+        const cc = limit > 0 && (voltage - (context.bulbVoltages.get(component.id) ?? 0)) / internalResistance > limit;
+        stampConductance(context, positive, negative, cc ? 1e-10 : conductance);
+        stampCurrentSource(context, negative, positive, cc ? limit : voltage / internalResistance);
         break;
       }
       case 'resistor': {
@@ -522,7 +525,7 @@ function solveRaw(
     transient,
     ledStates,
   );
-  const lamps = snapshot.components.filter(c => c.type === 'bulb');
+  const lamps = snapshot.components.filter(c => c.type === 'bulb' || c.type === 'power-supply' && Number(c.params.currentLimit) > 0);
   let stampDiagnostics: Diagnostic[] = [];
   let linear: ReturnType<typeof solveLinearSystem> = { solution: null, singular: false, pivotMagnitude: 0 };
   let converged = false;
@@ -533,8 +536,8 @@ function solveRaw(
     linear = solveLinearSystem(context.A, context.b, 1e-13);
     if (!linear.solution) break;
     const values = lamps.map(lamp => {
-      const indexA = equationMap.get(portNet.get(makePortId(lamp.id, 'a'))!);
-      const indexB = equationMap.get(portNet.get(makePortId(lamp.id, 'b'))!);
+      const indexA = equationMap.get(portNet.get(makePortId(lamp.id, lamp.type === 'bulb' ? 'a' : 'positive'))!);
+      const indexB = equationMap.get(portNet.get(makePortId(lamp.id, lamp.type === 'bulb' ? 'b' : 'negative'))!);
       return { id: lamp.id, voltage: (indexA === undefined ? 0 : linear.solution![indexA]) - (indexB === undefined ? 0 : linear.solution![indexB]) };
     });
     const error = Math.max(0, ...values.map(v => Math.abs(v.voltage - (context.bulbVoltages.get(v.id) ?? 0))));
@@ -553,7 +556,7 @@ function solveRaw(
         {
           code: linear.solution ? 'lamp-not-converged' : 'singular-matrix',
           level: 'error',
-          message: linear.solution ? '灯泡非线性迭代未收敛，读数已停止显示。' : '电路方程无唯一解，请检查浮动节点与电源连接。',
+          message: linear.solution ? '非线性器件迭代未收敛，读数已停止显示。' : '电路方程无唯一解，请检查浮动节点与电源连接。',
         },
       ],
       equationMap,
@@ -742,13 +745,17 @@ function measureElementResults(
           sanitizePositive(component.params.internalResistance, 0.2),
         );
         const outputVoltage = enabled ? port('positive') - port('negative') : 0;
-        const outputCurrent = enabled ? setVoltage / internalResistance - outputVoltage / internalResistance : 0;
+        const limit = Number(component.params.currentLimit);
+        const cvCurrent = (setVoltage - outputVoltage) / internalResistance;
+        const cc = limit > 0 && cvCurrent > limit;
+        const outputCurrent = enabled ? cc ? limit - outputVoltage * 1e-10 : cvCurrent : 0;
         element.voltage = outputVoltage;
         element.current = outputCurrent;
         element.power = outputVoltage * outputCurrent;
         element.reading = outputCurrent;
         element.readingUnit = 'A';
         element.flags = {
+          regulation: !enabled ? 'OFF' : cc ? 'CC' : 'CV',
           enabled,
           setVoltage,
           outputVoltage,
@@ -1025,6 +1032,7 @@ export function simulateCircuit(
   snapshot: CircuitSnapshot,
   options: SimulationOptions = {},
 ): SimulationResult {
+  if (snapshot.components.some(isBenchInstrument)) return simulateInstruments(snapshot, options, simulateCircuit);
   const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
   const { nets, portNet, diagnostics: netDiagnostics } = buildElectricalNets(snapshot);
   const hasAC = snapshot.components.some(c => c.type === 'three-phase-source');

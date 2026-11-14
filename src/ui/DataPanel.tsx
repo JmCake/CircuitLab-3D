@@ -241,10 +241,10 @@ function TransientChart() {
   );
 }
 
-export function DataPanel() {
+export function DataPanel({ presentation = false }: { presentation?: boolean }) {
   const id = useLabStore(s => s.activeLabId);
   const mode = useLabStore(s => s.mode);
-  return mode === 'guided' && COURSE_LABS.some(l => l.id === id) ? <CourseDataPanel /> : <LegacyDataPanel />;
+  return mode === 'guided' && COURSE_LABS.some(l => l.id === id) ? <CourseDataPanel presentation={presentation} /> : <LegacyDataPanel />;
 }
 
 function LegacyDataPanel() {
@@ -264,20 +264,22 @@ function LegacyDataPanel() {
   const labRows = measurements.filter((row) => row.labId === activeLabId);
   const recordingIssue = measurementIssue(components, result);
 
-  const supply = components.find((component) => component.type === 'power-supply');
+  const supply = components.find((component) => component.type === 'power-supply' || component.type === 'programmable-supply');
+  const dmm = components.find(c => c.type === 'multimeter');
+  const dmmResult = dmm ? result.elements[dmm.id] : undefined;
   const ammeter = components.find((component) => component.type === 'ammeter');
   const voltmeter = components.find((component) => component.type === 'voltmeter');
   const capacitor = components.find((component) => component.type === 'capacitor');
   const resistor = components.find((component) => component.type === 'resistor');
   const supplyElement = supply ? result.elements[supply.id] : undefined;
   const voltageReading = result.solved
-    ? (voltmeter ? result.elements[voltmeter.id]?.reading : undefined) ??
+    ? (voltmeter ? result.elements[voltmeter.id]?.reading : undefined) ?? (dmmResult?.readingUnit === 'V' ? dmmResult.reading : undefined) ??
       (capacitor ? result.elements[capacitor.id]?.voltage : undefined) ??
       (resistor ? result.elements[resistor.id]?.voltage : undefined) ??
       supplyElement?.voltage
     : null;
   const currentReading = result.solved
-    ? (ammeter ? result.elements[ammeter.id]?.reading : undefined) ??
+    ? (ammeter ? result.elements[ammeter.id]?.reading : undefined) ?? (dmmResult?.readingUnit === 'A' ? dmmResult.reading : undefined) ??
       (resistor ? result.elements[resistor.id]?.current : undefined) ??
       supplyElement?.current
     : null;

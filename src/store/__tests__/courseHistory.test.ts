@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useLabStore } from '../labStore';
 import { validateWorkspace } from '../persistence';
+import { createDefaultParams, type LabComponent } from '../../circuit';
+import { useScopeStore } from '../scopeStore';
 
 describe('课程切换、参考点与测量存档', () => {
   beforeEach(() => { vi.stubGlobal('window', { innerWidth: 1600, setTimeout: () => 0 }); useLabStore.setState({ history: { past: [], future: [], transactionBefore: null }, measurements: [], toasts: [] }); });
@@ -26,5 +28,15 @@ describe('课程切换、参考点与测量存档', () => {
     const bad = structuredClone(workspace); bad.measurements[0].observation!.values.bad = NaN;
     expect(validateWorkspace(bad)!.measurements).toEqual([]);
     store.getState().importWorkspace(restored); expect(store.getState().referencePortId).toBe('potentials-r2:a');
+  });
+  it('暂停采集保持原始电压，重新载入工程后不沿用上一个工程的缓存', () => {
+    const part = (id: string, type: LabComponent['type']): LabComponent => ({ id, type, name: id, position: [0, 0], rotationY: 0, params: createDefaultParams(type) });
+    const store = useLabStore;
+    store.getState().importWorkspace({ ...store.getState().getWorkspace(), mode: 'free', measurements: [], components: [part('p', 'power-supply'), part('d', 'oscilloscope')], wires: [{ id: 'a', fromPortId: 'p:positive', toPortId: 'd:ch1', color: '#222' }, { id: 'b', fromPortId: 'p:negative', toPortId: 'd:negative', color: '#222' }] });
+    store.getState().setParam('d', 'running', false); store.getState().setParam('p', 'voltage', 12);
+    expect(useScopeStore.getState().held.d.result.elements.d.flags?.ch1).toBeCloseTo(6 / 1.0000002, 7);
+    expect(store.getState().result.elements.d.flags?.ch1).toBeCloseTo(12 / 1.0000002, 7);
+    const saved = validateWorkspace(JSON.parse(JSON.stringify(store.getState().getWorkspace())))!; expect(saved.components.find(c => c.id === 'd')?.type).toBe('oscilloscope');
+    store.getState().importWorkspace(saved); expect(useScopeStore.getState().held.d).toBeUndefined();
   });
 });

@@ -1,4 +1,4 @@
-import { Box, Crosshair, Home, MousePointer2, PanelTop, Scan } from 'lucide-react';
+import { Box, Crosshair, MousePointer2, PanelTop, Scan } from 'lucide-react';
 import { findPortOwner, getDefinition, parsePortId } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { cameraBridge } from '../three/cameraBridge';
@@ -37,24 +37,15 @@ export function SceneHud() {
     <div className="scene-hud">
       <div className="scene-hud-top-left">
         <div className="view-toolbar" aria-label="实验台视角与画质">
-          <button type="button" onClick={() => cameraBridge.view('perspective')} title="透视视角"><Box size={14} /><span>透视</span></button>
-          <button type="button" onClick={() => cameraBridge.view('top')} title="顶视接线"><Scan size={14} /><span>顶视</span></button>
-          <button type="button" onClick={() => cameraBridge.view('front')} title="前视仪表"><PanelTop size={14} /><span>前视</span></button>
+          <button type="button" aria-label="透视" onClick={() => cameraBridge.view('perspective')} title="透视视角"><Box size={14} /><span>透视</span></button>
+          <button type="button" aria-label="顶视" onClick={() => cameraBridge.view('top')} title="顶视接线"><Scan size={14} /><span>顶视</span></button>
+          <button type="button" aria-label="前视" onClick={() => cameraBridge.view('front')} title="前视仪表"><PanelTop size={14} /><span>前视</span></button>
           <span className="view-toolbar-separator" />
           <select aria-label="渲染画质" value={quality} onChange={e => setQuality(e.target.value as 'fine' | 'smooth')}><option value="fine">精细</option><option value="smooth">流畅</option></select>
         </div>
       </div>
 
       <div className="scene-hud-top-right">
-        <button
-          type="button"
-          className="scene-tool"
-          onClick={() => cameraBridge.reset()}
-          title="恢复默认视角 (Home)"
-          aria-label="恢复默认视角"
-        >
-          <Home size={16} />
-        </button>
         <button
           type="button"
           className="scene-tool"

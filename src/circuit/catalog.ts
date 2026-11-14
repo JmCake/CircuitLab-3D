@@ -1,3 +1,4 @@
+import { INSTRUMENT_DEFINITIONS } from './instrumentDefinitions';
 import type {
   ComponentDefinition,
   ComponentType,
@@ -7,16 +8,19 @@ import type {
 } from './types';
 
 export const BENCH = {
-  width: 2.24,
-  depth: 1.16,
+  width: 2.8,
+  depth: 1.4,
   thickness: 0.052,
   surfaceY: 0,
   height: 0.79,
-  bounds: { minX: -0.96, maxX: 0.96, minZ: -0.44, maxZ: 0.46 },
+  bounds: { minX: -1.26, maxX: 1.26, minZ: -0.59, maxZ: 0.59 },
   edgePadding: 0.035,
 } as const;
 
 export const DEFAULT_LAYOUT: Record<ComponentType, { position: [number, number]; rotationY: number }> = {
+  'programmable-supply': { position: [-0.88, -0.22], rotationY: 0 },
+  multimeter: { position: [0.8, 0.22], rotationY: 0 },
+  oscilloscope: { position: [0.8, -0.27], rotationY: 0 },
   'three-phase-source': { position: [-0.65, -0.2], rotationY: 0 },
   'power-supply': { position: [-0.56, -0.15], rotationY: 0.055 },
   switch: { position: [-0.01, 0.22], rotationY: -0.03 },
@@ -90,6 +94,7 @@ function breadboardPorts(): PortDefinition[] {
 }
 
 export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> = {
+  ...INSTRUMENT_DEFINITIONS,
   'three-phase-source': {
     type: 'three-phase-source', name: '三相交流电源', shortName: '三相电源', prefix: 'AC', category: 'source',
     description: '可调对称三相电源，A、B、C 与中性点 N 独立接线。电压设定与仪表均采用有效值。',
@@ -462,6 +467,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
 };
 
 export const COMPONENT_ORDER: ComponentType[] = [
+  'programmable-supply', 'multimeter', 'oscilloscope',
   'power-supply',
   'ammeter',
   'voltmeter',

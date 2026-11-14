@@ -1,0 +1,70 @@
+{
+  "interactions": [
+    {
+      "action": "actual-programmable-voltage-knob",
+      "before": 5,
+      "after": 8
+    },
+    {
+      "action": "fold-pan-without-orbit-or-moving-parts",
+      "before": {
+        "position": [
+          1.1847821293907468,
+          1.4713378209342078,
+          3.222566706563789
+        ],
+        "target": [
+          -0.06500000000000006,
+          0.1825,
+          0.01999999999999999
+        ]
+      },
+      "after": {
+        "position": [
+          1.3338345485083565,
+          1.4713378209342078,
+          3.1643999088593557
+        ],
+        "target": [
+          0.08405241911760958,
+          0.1825,
+          -0.03816679770443303
+        ]
+      },
+      "sceneWidth": 1600
+    },
+    {
+      "action": "CC-control",
+      "current": 0.01999999998000022,
+      "voltage": 0.19999779982420413
+    },
+    {
+      "action": "two-channel-phase-and-hold-across-console-reopen",
+      "phase": -120
+    },
+    {
+      "action": "full-screen-data-and-CSV-preserve-records",
+      "count": 10
+    },
+    {
+      "action": "mobile-scope-controls-and-deleted-console-recovery"
+    }
+  ],
+  "meshes": [
+    {
+      "label": "programmable supply, DMM and scope",
+      "wires": 6,
+      "collisions": []
+    },
+    {
+      "label": "shared-COM AC instrument inputs",
+      "wires": 5,
+      "collisions": []
+    }
+  ],
+  "errors": [],
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390
+  }
+}

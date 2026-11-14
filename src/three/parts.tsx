@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import type { ComponentDefinition, LabComponent, PortDefinition } from '../circuit';
 import { getDefinition, makePortId } from '../circuit';
 import { useLabStore } from '../store/labStore';
+import { useViewStore } from '../store/viewStore';
 import { LabelPlane, useDrawTexture } from './graphics';
 import { MATERIALS, SHARED_GEOMETRY } from './materials';
 import { registerPortTarget, unregisterPortTarget } from './portRegistry';
@@ -108,6 +109,7 @@ export function InstrumentFrame({ component, selected, children }: InstrumentFra
       position={[component.position[0], 0, component.position[1]]}
       rotation={[0, component.rotationY, 0]}
       onPointerDown={handlePointerDown}
+      onDoubleClick={event => { event.stopPropagation(); useViewStore.getState().openConsole(component.id); }}
       userData={{ componentId: component.id, interactive: 'component' }}
     >
       {children}

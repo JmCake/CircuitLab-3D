@@ -6,6 +6,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useLabStore } from '../store/labStore';
 import { getDefinition } from '../circuit';
 import { cameraBridge } from './cameraBridge';
+import { useViewStore } from '../store/viewStore';
 
 const DEFAULT_POSITION = new THREE.Vector3(0.64, 0.78, 1.62);
 const DEFAULT_TARGET = new THREE.Vector3(0, 0.12, -0.02);
@@ -26,8 +27,11 @@ export function CameraRig() {
   const gl = useThree((state) => state.gl);
   const invalidate = useThree((state) => state.invalidate);
   const aspect = useThree((state) => state.size.width / state.size.height);
+  const size = useThree(s => s.size);
+  const libraryOpen = useLabStore(s => s.libraryOpen), sideOpen = useViewStore(s => s.sideOpen);
   const layoutKey = useLabStore(state => state.components.map(c => c.id).join('|'));
   const interactionMode = useLabStore((state) => state.interactionMode);
+  const panMode = useViewStore(s => s.panMode);
   const tween = useRef<CameraTween>({
     active: false,
     elapsed: 0,
@@ -54,6 +58,14 @@ export function CameraRig() {
   };
 
   useEffect(() => {
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    const left = size.width > 760 && libraryOpen ? size.width > 1100 ? 262 : 237 : 0;
+    const right = size.width > 760 && sideOpen ? size.width > 1100 ? 402 : 367 : 0;
+    camera.setViewOffset(size.width, size.height, (right - left) / 2, 0, size.width, size.height);
+    camera.updateProjectionMatrix(); invalidate();
+  }, [camera, size, libraryOpen, sideOpen, invalidate]);
+
+  useEffect(() => {
     const frameBench = (preset: 'perspective' | 'top' | 'front') => {
       const components = useLabStore.getState().components;
       const corners: THREE.Vector3[] = [];
@@ -78,10 +90,13 @@ export function CameraRig() {
       const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
       const up = new THREE.Vector3().crossVectors(right, forward).normalize();
       const tanV = Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov) / 2);
+      const ui = useViewStore.getState();
+      const margin = size.width > 760 ? (useLabStore.getState().libraryOpen ? size.width > 1100 ? 262 : 237 : 30) + (ui.sideOpen ? size.width > 1100 ? 402 : 367 : 30) : 30;
+      const usableAspect = Math.max(0.25, (size.width - margin) / size.height);
       let distance = 1.6;
       for (const corner of corners) {
         const relative = corner.clone().sub(target);
-        distance = Math.max(distance, Math.abs(relative.dot(right)) / (tanV * aspect * 0.85) - relative.dot(forward),
+        distance = Math.max(distance, Math.abs(relative.dot(right)) / (tanV * usableAspect * 0.85) - relative.dot(forward),
           Math.abs(relative.dot(up)) / (tanV * 0.76) - relative.dot(forward));
       }
       startTween(target, target.clone().addScaledVector(backward, distance));
@@ -104,6 +119,14 @@ export function CameraRig() {
       const nextPosition = target.clone().add(direction.multiplyScalar(distance));
       startTween(target, nextPosition, 0.5);
     };
+    cameraBridge.pan = (horizontal, vertical) => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+      const offset = right.multiplyScalar(horizontal).add(new THREE.Vector3(0, vertical, 0));
+      startTween(controls.target.clone().add(offset), camera.position.clone().add(offset), 0.18);
+    };
+    cameraBridge.getPose = () => controlsRef.current ? { position: camera.position.toArray(), target: controlsRef.current.target.toArray() } : null;
     cameraBridge.screenToTable = (clientX, clientY) => {
       const rect = gl.domElement.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return null;
@@ -141,6 +164,8 @@ export function CameraRig() {
 
     return () => {
       cameraBridge.reset = () => undefined;
+      cameraBridge.pan = () => undefined;
+      cameraBridge.getPose = () => null;
       cameraBridge.view = () => undefined;
       cameraBridge.focus = () => undefined;
       cameraBridge.screenToTable = () => null;
@@ -166,14 +191,15 @@ export function CameraRig() {
     const beforeX = controls.target.x;
     const beforeY = controls.target.y;
     const beforeZ = controls.target.z;
-    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -0.72, 0.72);
-    controls.target.y = THREE.MathUtils.clamp(controls.target.y, 0.02, 0.3);
-    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -0.34, 0.34);
+    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -1.1, 1.1);
+    controls.target.y = THREE.MathUtils.clamp(controls.target.y, 0.02, 0.7);
+    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -0.55, 0.55);
     if (
       beforeX !== controls.target.x ||
       beforeY !== controls.target.y ||
       beforeZ !== controls.target.z
     ) {
+      camera.position.add(new THREE.Vector3(controls.target.x - beforeX, controls.target.y - beforeY, controls.target.z - beforeZ));
       controls.update();
     }
   });
@@ -190,14 +216,14 @@ export function CameraRig() {
       panSpeed={0.55}
       zoomSpeed={0.75}
       minDistance={1.15}
-      maxDistance={3.8}
+      maxDistance={5.5}
       minPolarAngle={0.01}
       maxPolarAngle={1.34}
       onStart={() => {
         tween.current.active = false;
       }}
       mouseButtons={{
-        LEFT: THREE.MOUSE.ROTATE,
+        LEFT: panMode ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: THREE.MOUSE.PAN,
       }}
