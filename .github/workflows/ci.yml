@@ -2,8 +2,18 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Do not interrupt a production publish halfway through its git push.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   typecheck-test-build:
@@ -31,7 +41,12 @@ jobs:
       - name: Production build
         run: npm run build
 
+      - name: Public website build
+        run: npm run build:web
+
   browser_suites:
+    needs: typecheck-test-build
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && !github.event.pull_request.draft)
     name: browser-${{ matrix.suite }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -61,25 +76,42 @@ jobs:
       - name: Run browser suite
         run: ${{ matrix.command }}
       - name: Save browser evidence
-        if: always()
+        if: failure() && !cancelled()
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: browser-evidence-${{ matrix.suite }}
           path: screenshots/
-          retention-days: 3
+          retention-days: 1
+          if-no-files-found: ignore
 
   browser-checks:
-    needs: browser_suites
-    if: always()
+    needs: [typecheck-test-build, browser_suites]
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
+    timeout-minutes: 2
     steps:
       - name: Require every browser suite to pass
-        run: test '${{ needs.browser_suites.result }}' = 'success'
+        env:
+          BASIC_RESULT: ${{ needs.typecheck-test-build.result }}
+          BROWSER_RESULT: ${{ needs.browser_suites.result }}
+          BROWSERS_REQUIRED: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && !github.event.pull_request.draft) }}
+        run: |
+          test "$BASIC_RESULT" = 'success'
+          if [ "$BROWSERS_REQUIRED" = 'true' ]; then
+            test "$BROWSER_RESULT" = 'success'
+          else
+            test "$BROWSER_RESULT" = 'skipped'
+          fi
 
   deploy-web:
     needs: [typecheck-test-build, browser-checks]
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    if: >-
+      !cancelled() &&
+      needs.typecheck-test-build.result == 'success' &&
+      needs.browser-checks.result == 'success' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
