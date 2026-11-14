@@ -184,6 +184,7 @@ async function runCheck(browser) {
     return {
       supplyId: supply.id,
       startVoltage: Number(supply.params.voltage),
+      startPosition: [...supply.position],
       screen: window.__circuitlab.localScreen(supply.id, [-0.15, 0.09, 0.19]),
     };
   });
@@ -215,7 +216,7 @@ async function runCheck(browser) {
     return supply.position;
   });
   assert(
-    Math.abs(supplyStillAt[0] + 0.58) < 1e-6 && Math.abs(supplyStillAt[1] + 0.16) < 1e-6,
+    Math.hypot(supplyStillAt[0] - knobTest.startPosition[0], supplyStillAt[1] - knobTest.startPosition[1]) < 1e-6,
     '操作旋钮时器材不应被相机/拖动逻辑移动',
   );
 
