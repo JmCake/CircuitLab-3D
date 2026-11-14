@@ -37,20 +37,17 @@ const PART_ICONS: Record<ComponentType, LucideIcon> = {
   breadboard: Grid3X3,
 };
 
-const SECTIONS: { title: string; hint: string; items: ComponentType[] }[] = [
+const SECTIONS: { title: string; items: ComponentType[] }[] = [
   {
     title: '电源与测量',
-    hint: 'SOURCE & METERS',
     items: ['power-supply', 'ammeter', 'voltmeter'],
   },
   {
     title: '基础元件',
-    hint: 'PASSIVE & CONTROL',
     items: ['resistor', 'resistor-box', 'rheostat', 'switch'],
   },
   {
     title: '半导体与连接',
-    hint: 'SEMICONDUCTOR KIT',
     items: ['led', 'bulb', 'capacitor', 'breadboard'],
   },
 ];
@@ -75,20 +72,14 @@ export function LibraryPanel() {
     <aside className="library-panel">
       <div className="panel-heading library-heading">
         <div>
-          <div className="panel-eyebrow">EQUIPMENT LIBRARY</div>
           <h2>器材库</h2>
         </div>
-        <span className="panel-count">{components.length} 件</span>
       </div>
-      <p className="library-hint">
-        拖入实验台，或点击器材快速添加。所有模型与端口均由代码程序化生成。
-      </p>
       <div className="library-scroll">
         {SECTIONS.map((section) => (
           <section className="library-section" key={section.title}>
             <div className="library-section-heading">
               <span>{section.title}</span>
-              <small>{section.hint}</small>
             </div>
             <div className="part-list">
               {section.items.map((type) => {
@@ -125,7 +116,6 @@ export function LibraryPanel() {
                         {definition.name}
                         {count > 0 && <em>×{count}</em>}
                       </span>
-                      <span className="part-description">{definition.description}</span>
                     </span>
                     <span className="part-add">
                       <Plus size={15} />

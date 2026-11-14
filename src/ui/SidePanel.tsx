@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { Database, FlaskConical, SlidersHorizontal } from 'lucide-react';
 import { useLabStore, type SideTab } from '../store/labStore';
 import { DataPanel } from './DataPanel';
@@ -19,6 +20,11 @@ export function SidePanel() {
   const result = useLabStore((state) => state.result);
   const selectedId = useLabStore((state) => state.selectedId);
   const selectedWireId = useLabStore((state) => state.selectedWireId);
+  const activeLabId = useLabStore((state) => state.activeLabId);
+  const content = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (content.current) content.current.scrollTop = 0;
+  }, [sideTab, selectedId, selectedWireId, activeLabId]);
 
   const errors = result.diagnostics.filter((item) => item.level === 'error');
   const warnings = result.diagnostics.filter((item) => item.level === 'warning');
@@ -93,7 +99,7 @@ export function SidePanel() {
         )}
       </div>
 
-      <div className="side-panel-content">
+      <div className="side-panel-content" ref={content}>
         {sideTab === 'lab' && <LabPanel />}
         {sideTab === 'inspector' && <InspectorPanel />}
         {sideTab === 'data' && <DataPanel />}

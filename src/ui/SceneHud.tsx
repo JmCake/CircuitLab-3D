@@ -1,4 +1,4 @@
-import { Box, Crosshair, Home, Info, MousePointer2, PanelTop, Scan } from 'lucide-react';
+import { Box, Crosshair, Home, MousePointer2, PanelTop, Scan } from 'lucide-react';
 import { findPortOwner, getDefinition, parsePortId } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { cameraBridge } from '../three/cameraBridge';
@@ -105,23 +105,7 @@ export function SceneHud() {
         </div>
       )}
 
-      {blockedWires > 0 && <div className="wire-obstruction" role="status">{blockedWires} 根导线的出线空间不足，请移开接线柱附近的器材，导线将自动恢复。</div>}
-      <div className="scene-hints">
-        <div className="hint-line">
-          <span><b>左键拖动</b> 移动器材</span>
-          <span className="hint-sep" />
-          <span><b>点击接线柱</b> 拉出导线</span>
-          <span className="hint-sep" />
-          <span><b>右键拖动</b> 平移</span>
-          <span className="hint-sep" />
-          <span><b>滚轮</b> 缩放</span>
-        </div>
-      </div>
-
-      <div className="scene-webgl-note">
-        <Info size={12} />
-        WebGL 2 · 实时求解
-      </div>
+      {blockedWires > 0 && <div className="wire-obstruction" role="status">{blockedWires} 根导线被器材遮挡，电气连接保留。移开器材后恢复显示。</div>}
     </div>
   );
 }

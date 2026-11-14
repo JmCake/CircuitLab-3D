@@ -93,19 +93,7 @@ function TransientChart() {
   );
   const dischargeSupply = components.find(c => c.type === 'power-supply');
 
-  if (!capacitor) {
-    return (
-      <div className="panel-card">
-        <div className="panel-card-title">
-          <RotateCcw size={15} />
-          RC 暂态
-        </div>
-        <p className="muted-copy">
-          当前没有电容。添加电容后，可启动后向欧拉暂态，观察电容电压随时间变化。
-        </p>
-      </div>
-    );
-  }
+  if (!capacitor) return null;
 
   const values = transient.samples.map(
     (sample) => sample.values[capacitor.id] ?? 0,
@@ -202,7 +190,7 @@ function TransientChart() {
       </div>
       <div className="chart-legend">
         <span><i />电容端电压</span>
-        <span>{transient.samples.length} 点 · 采样 20 ms / 积分 2 ms</span>
+        <span>{transient.samples.length} 点</span>
       </div>
       <div className="button-row wrap">
         {!transient.active ? (
@@ -242,9 +230,12 @@ function TransientChart() {
             downloadText('circuitlab-transient.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8');
           }}><Download size={14} />导出曲线 CSV</button>
       </div>
-      <p className="param-help">
+      <details className="model-note collapsible">
+        <summary>暂态模型</summary>
+        <p>
         后向欧拉积分 2 ms、采样 20 ms。前台按实际时间推进，后台冻结，积压时暂停。快速暂态精度受限；放电按钮令电源电动势为零并保留内阻。曲线最多保留最近 1200 点。
-      </p>
+        </p>
+      </details>
     </div>
   );
 }
@@ -333,7 +324,6 @@ export function DataPanel() {
     <div className="panel-stack">
       <div className="data-heading">
         <div>
-          <span className="panel-eyebrow">MEASUREMENT LOG</span>
           <h2>{lab.index} · {lab.title}</h2>
         </div>
         <span className="record-count">{labRows.length} 条记录</span>
@@ -343,12 +333,10 @@ export function DataPanel() {
         <div className="readout-card">
           <span className="readout-label">当前电压</span>
           <strong>{formatVoltage(voltageReading)}</strong>
-          <small>{voltmeter ? '电压表并联测量值' : '电路等效读数'}</small>
         </div>
         <div className="readout-card">
           <span className="readout-label">当前电流</span>
           <strong>{formatCurrent(currentReading)}</strong>
-          <small>{ammeter ? '电流表串联测量值' : '支路计算值'}</small>
         </div>
       </div>
       <div className="data-actions-row">
@@ -367,9 +355,7 @@ export function DataPanel() {
           保存工程
         </button>
       </div>
-      <p className="data-note">
-        {recordingIssue ?? '记录值直接取自当前仿真快照；若修改接线或参数，请重新记录。教学判定会同时检查拓扑与数值。'}
-      </p>
+      {recordingIssue && <p className="data-note">{recordingIssue}</p>}
 
       <TransientChart />
       <NetworkAnalysisPanel />
@@ -383,7 +369,6 @@ export function DataPanel() {
         {labRows.length === 0 ? (
           <div className="empty-table">
             <span>尚无本实验的测量数据</span>
-            <small>完成接线并点击“记录当前读数”后出现在这里。</small>
           </div>
         ) : (
           <div className="measurement-table-wrap">
@@ -440,11 +425,7 @@ export function DataPanel() {
         <div className="panel-card-title">
           <FileJson size={15} />
           工程存档与恢复
-          <span>v1</span>
         </div>
-        <p className="param-help">
-          保存器材类型、参数、桌面变换、稳定端口 ID、导线拓扑和实验记录。恢复时会重新建立求解器状态并重新计算。
-        </p>
         <div className="button-grid">
           <button type="button" className="button button-secondary compact" onClick={exportJson}>
             <Download size={14} />
@@ -493,7 +474,7 @@ export function DataPanel() {
         />
       </div>
 
-      <div className="panel-card diagnostics-card">
+      {diagnostics.length > 0 && <div className="panel-card diagnostics-card">
         <div className="panel-card-title">
           <AlertTriangle size={15} />
           求解诊断
@@ -510,18 +491,13 @@ export function DataPanel() {
               <div className={`diagnostic-item ${item.level}`} key={`${item.code}-${index}`}>
                 {diagnosticIcon(item)}
                 <div>
-                  <strong>{item.code}</strong>
                   <p>{item.message}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
-        <p className="param-help">
-          直流线性网络使用节点分析；电源为带内部电阻的有限电流模型。异常时不会显示 NaN、Infinity
-          或沿用旧读数。
-        </p>
-      </div>
+      </div>}
     </div>
   );
 }

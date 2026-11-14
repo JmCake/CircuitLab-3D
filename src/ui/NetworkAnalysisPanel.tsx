@@ -28,7 +28,7 @@ export function NetworkAnalysisPanel() {
   const ratio = eq && load ? Number(load.params.resistance) / eq.resistance : 0;
   return (
     <section className="panel-card network-analysis" aria-label="电路数值分析">
-      <div className="panel-card-title"><Activity size={15} />电路数值分析<span>由当前网表计算</span></div>
+      <div className="panel-card-title"><Activity size={15} />电路数值分析</div>
       {audit && <div className={`conservation-readout ${audit.passed ? 'is-ok' : 'is-warning'}`}>
         <strong>{audit.passed ? '节点电流与功率平衡通过' : '守恒残差需要检查'}</strong>
         <span>最大 |ΣI| = {audit.kclResidual.toExponential(2)} A</span>
