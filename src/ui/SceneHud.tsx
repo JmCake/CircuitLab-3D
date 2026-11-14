@@ -1,4 +1,4 @@
-import { Box, Crosshair, MousePointer2, PanelTop, Scan } from 'lucide-react';
+import { AlertTriangle, Box, Crosshair, MousePointer2, PanelTop, Scan } from 'lucide-react';
 import { findPortOwner, getDefinition, parsePortId } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { cameraBridge } from '../three/cameraBridge';
@@ -96,7 +96,10 @@ export function SceneHud() {
         </div>
       )}
 
-      {blockedWires > 0 && <div className="wire-obstruction" role="status">{blockedWires} 根导线被器材遮挡，电气连接保留。移开器材后恢复显示。</div>}
+      {blockedWires > 0 && <div className="wire-obstruction" role="status" title="移开遮挡器材即可恢复"
+        aria-label={`${blockedWires} 根导线被遮挡，电气连接保留，移开器材后恢复显示。`}>
+        <AlertTriangle size={14} aria-hidden="true" /><span>{blockedWires} 根导线被遮挡</span>
+      </div>}
     </div>
   );
 }

@@ -3332,7 +3332,8 @@ kbd {
   .brand-mark { width: 32px; height: 32px; }
 }
 
-.wire-obstruction { position: absolute; bottom: 84px; left: 16px; right: 16px; padding: 10px 12px; border: 1px solid var(--warning); border-radius: 7px; background: var(--warning-soft); color: var(--warning); font-size: 12px; line-height: 1.6; pointer-events: none; }
+.wire-obstruction { position: absolute; top: 66px; left: 16px; display: inline-flex; align-items: center; gap: 6px; width: max-content; max-width: min(240px, calc(100% - 32px)); padding: 7px 10px; border: 1px solid #dbc69f; border-radius: 9px; background: #faf2e2f2; color: var(--warning); box-shadow: 0 3px 12px #342b1c12; font-size: 12px; line-height: 1.4; pointer-events: auto; }
+.wire-obstruction svg { flex: 0 0 auto; }
 
 .course-data > h2 { margin: 0; font-size: 18px; line-height: 1.45; letter-spacing: -.025em; }
 .course-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }

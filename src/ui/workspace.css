@@ -1,4 +1,6 @@
 /* The scene fills the workspace; tools float above it without narrowing the WebGL canvas. */
+.app .wire-obstruction { left: 264px; }
+.app .library-closed .wire-obstruction { left: 64px; }
 .app .main-grid, .app .main-grid.library-closed { display: block; position: relative; }
 .app .main-grid > .scene-column { position: absolute; inset: 0; }
 .app .library-panel, .app .side-panel { position: absolute; z-index: 16; top: 16px; border: 1px solid #d6d0c5; border-radius: 15px; box-shadow: 0 14px 38px #28291f20; background: #faf8f2f2; backdrop-filter: blur(16px); overflow: hidden; }
@@ -43,8 +45,10 @@
 .data-presentation .lesson-analysis { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .data-presentation .course-results .course-records { min-width: 0; margin-top: 0; }
 .data-presentation { inset: 16px; border-radius: 20px; }.data-presentation:fullscreen { inset: 0; border: 0; border-radius: 0; }.data-presentation .console-heading { cursor: default; padding: 22px 32px; }.data-presentation .console-content { padding: 26px 4vw; }.data-presentation .panel-stack { width: min(1280px, 100%); margin: auto; gap: 24px; }.data-presentation h2 { font-size: 25px; }.data-presentation .course-plot svg { max-height: 480px; width: 100%; }.data-presentation .course-phasors { max-height: 380px; width: 100%; }.data-presentation .course-metrics { justify-content: space-around; }.data-presentation .course-metrics strong { font-size: 27px; }.data-presentation .measurement-table { font-size: 13px; }.data-presentation .measurement-table-wrap { max-height: none; }.data-presentation .course-records { margin-top: 10px; }.data-presentation .course-records h3 { font-size: 18px; }.data-presentation .course-controls { gap: 10px; }.data-presentation .course-control-label { max-width: 280px; }.data-presentation .course-voltage { max-width: 600px; }
-@media (max-width: 1100px) and (min-width: 761px) { .app .library-panel { width: 205px; }.app .side-panel { width: 335px; }.app .scene-hud-top-left { left: 238px; }.app .scene-hud-top-right { right: 365px; }.app .scene-object-picker { right: 365px; }.bench-toolbar { gap: 0; }.bench-toolbar button { width: 30px; }.bench-toolbar [aria-label*="平移视野"] { display: none; } }
+@media (max-width: 1100px) and (min-width: 761px) { .app .library-panel { width: 205px; }.app .side-panel { width: 335px; }.app .scene-hud-top-left, .app .wire-obstruction { left: 238px; }.app .scene-hud-top-right { right: 365px; }.app .scene-object-picker { right: 365px; }.bench-toolbar { gap: 0; }.bench-toolbar button { width: 30px; }.bench-toolbar [aria-label*="平移视野"] { display: none; } }
 @media (max-width: 760px) {
+  .app .wire-obstruction, .app .library-closed .wire-obstruction { top: 60px; left: auto; right: 10px; max-width: calc(100% - 20px); }
+  .app .library-open .wire-obstruction { max-width: calc(100% - 255px); }
   .scope-view text { font-size: 22px; }
   .data-presentation .course-results { display: flex; flex-direction: column; gap: 26px; }.data-presentation .lesson-analysis, .data-presentation .course-results .course-records { width: 100%; }
   .app .main-grid, .app .main-grid.library-closed { display: flex; flex-direction: column; overflow: auto; }

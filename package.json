@@ -1,7 +1,7 @@
 {
   "name": "circuitlab-3d",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "CircuitLab-3D — 面向大学电路教学的交互式三维虚拟实验室",
   "type": "module",
   "scripts": {
