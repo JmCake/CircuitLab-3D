@@ -59,11 +59,17 @@ export function CameraRig() {
 
   useEffect(() => {
     if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    // Opening the inspector must not move the ray underneath a held pointer.
+    if (interactionMode !== 'idle') return;
     const left = size.width > 760 && libraryOpen ? size.width > 1100 ? 262 : 237 : 0;
     const right = size.width > 760 && sideOpen ? size.width > 1100 ? 402 : 367 : 0;
-    camera.setViewOffset(size.width, size.height, (right - left) / 2, 0, size.width, size.height);
-    camera.updateProjectionMatrix(); invalidate();
-  }, [camera, size, libraryOpen, sideOpen, invalidate]);
+    // Wait for the complete pointerup/click sequence before shifting the view.
+    const frame = requestAnimationFrame(() => {
+      camera.setViewOffset(size.width, size.height, (right - left) / 2, 0, size.width, size.height);
+      camera.updateProjectionMatrix(); invalidate();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [camera, size, libraryOpen, sideOpen, interactionMode, invalidate]);
 
   useEffect(() => {
     const frameBench = (preset: 'perspective' | 'top' | 'front') => {

@@ -69,10 +69,10 @@ try {
   await load('kirchhoff');
   for (const u of [6, 9, 12]) { await page.evaluate(u => window.__circuitlab.store.getState().setParam('kirchhoff-ps', 'voltage', u), u); await record(); }
   await progress('4/4');
-  await page.getByLabel('选择台上器材').selectOption('kirchhoff-am'); await page.getByLabel('测量模式', { exact: true }).selectOption('ac'); await data();
+  await page.getByLabel('选择台上器材').selectOption('kirchhoff-am'); await page.getByRole('button', { name: '交流 AC · 有效值', exact: true }).click(); await data();
   assert(await page.getByRole('button', { name: '记录当前读数', exact: true }).isDisabled());
   await page.getByLabel('选择台上器材').selectOption('kirchhoff-am'); await page.getByRole('tab', { name: '属性', exact: true }).click();
-  await page.getByLabel('测量模式', { exact: true }).selectOption('dc'); await data(); await shot('03-kirchhoff');
+  await page.getByRole('button', { name: '直流 DC', exact: true }).click(); await data(); await shot('03-kirchhoff');
   await load('superposition');
   for (const name of ['共同作用', '仅 U₁', '仅 U₂']) { await page.getByRole('button', { name, exact: true }).click(); await record(); }
   await page.getByLabel('齐次性倍率').selectOption('2'); await page.getByRole('button', { name: '两路同比变化', exact: true }).click(); await record();

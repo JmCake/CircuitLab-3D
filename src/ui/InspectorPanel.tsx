@@ -19,6 +19,8 @@ import {
 } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { cameraBridge } from '../three/cameraBridge';
+import { InstrumentPowerControl, InstrumentQuickControls, InstrumentReadout, quickControlKeys } from './InstrumentReadout';
+import { hasInstrumentDisplay, instrumentParams } from './instrumentPresentation';
 import {
   formatCurrent,
   formatParamValue,
@@ -425,6 +427,10 @@ export function InspectorPanel() {
   if (!component) return <EmptyInspector />;
 
   const definition = getDefinition(component.type);
+  const display = hasInstrumentDisplay(component.type);
+  const handled = quickControlKeys(component);
+  const params = instrumentParams(component).filter(p => !display || !handled.has(p.key));
+  const parameterFields = params.length ? <div className="param-list">{params.map(param => <ParamControl key={param.key} component={component} definition={param} />)}</div> : <div className="empty-inline">该器材没有可调参数。</div>;
   const connectedWires = wires.filter(
     (item) =>
       item.fromPortId.startsWith(`${component.id}:`) ||
@@ -443,7 +449,7 @@ export function InspectorPanel() {
   const internalGroups = getInternalPortGroups(component).length;
 
   return (
-    <div className="panel-stack">
+    <div className={`panel-stack ${display ? 'has-instrument-display' : ''}`}>
       <div className="inspector-header">
         <div className="inspector-title">
           <span className="inspector-icon" style={{ background: definition.accent }}>
@@ -453,9 +459,15 @@ export function InspectorPanel() {
             <h2 title={definition.description}>{component.name}</h2>
           </div>
         </div>
+        {display && <InstrumentPowerControl component={component} />}
       </div>
 
-      <div className="inspector-actions">
+      {display && <section className="instrument-preview" key={component.id} aria-label="仪器实时预览">
+        <InstrumentReadout component={component} compact />
+        <InstrumentQuickControls component={component} />
+      </section>}
+
+      <details className="inspector-pose" open={!display} key={`pose-${component.id}`}><summary>器材操作</summary><div className="inspector-actions">
         <button
           type="button"
           className="tool-button"
@@ -470,46 +482,39 @@ export function InspectorPanel() {
           className="tool-button"
           onClick={() => rotateComponent(component.id, -Math.PI / 12)}
           title="逆时针旋转 15°"
+          aria-label="逆时针旋转器材"
         >
           <RotateCcw size={15} />
-          旋转
         </button>
         <button
           type="button"
           className="tool-button"
           onClick={() => rotateComponent(component.id, Math.PI / 12)}
           title="顺时针旋转 15°"
+          aria-label="顺时针旋转器材"
         >
           <RotateCw size={15} />
-          旋转
         </button>
         <button
           type="button"
           className="tool-button danger-text"
           onClick={() => removeComponent(component.id)}
           title="删除器材 (Delete)"
+          aria-label="删除选中项"
         >
           <Trash2 size={15} />
         </button>
-      </div>
+      </div></details>
 
-      <section className="panel-section">
+      {display ? <details className="panel-section inspector-parameters" key={`params-${component.id}`}><summary>参数配置</summary>{parameterFields}</details> : <section className="panel-section">
         <div className="panel-card-title">参数配置</div>
-        {definition.params.length === 0 ? (
-          <div className="empty-inline">该器材没有可调参数。</div>
-        ) : (
-          <div className="param-list">
-            {definition.params.map((param) => (
-              <ParamControl key={param.key} component={component} definition={param} />
-            ))}
-          </div>
-        )}
-      </section>
+        {parameterFields}
+      </section>}
 
-      <section className="panel-section">
+      {!display && <section className="panel-section">
         <div className="panel-card-title">实时状态</div>
         <LiveValues component={component} />
-      </section>
+      </section>}
 
       <section className="panel-section">
         <div className="panel-card-title">

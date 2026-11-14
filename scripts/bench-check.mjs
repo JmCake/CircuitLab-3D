@@ -31,6 +31,7 @@ try {
     await page.getByRole('button', { name: '透视', exact: true }).click(); await page.waitForTimeout(800);
   }
   async function consoleFor(id) { await page.getByLabel('选择台上器材').selectOption(id); await page.getByRole('button', { name: '打开器材控制台', exact: true }).click(); return page.getByRole('dialog'); }
+  async function inspectorFor(id) { await page.getByLabel('选择台上器材').selectOption(id); await page.getByRole('tab', { name: '属性', exact: true }).click(); const preview = page.getByRole('region', { name: '仪器实时预览' }); await preview.waitFor(); return preview; }
   async function mesh(label) { await page.waitForFunction(() => { const a = window.__circuitlab; return a.wireClearance()?.wires.length === a.store.getState().wires.length; }); const r = await page.evaluate(() => window.__circuitlab.wireClearance()); assert.deepEqual(r.collisions, []); evidence.meshes.push({ label, wires: r.wires.length, collisions: r.collisions }); }
   await fixture('dc'); await mesh('programmable supply, DMM and scope'); await shot('01-workspace');
   const knob = await page.evaluate(() => ({ point: window.__circuitlab.localScreen('psu', [-0.18, 0.043, 0.211]), voltage: window.__circuitlab.store.getState().components.find(c => c.id === 'psu').params.voltage }));
@@ -41,13 +42,20 @@ try {
   await page.getByRole('button', { name: '侧边收起器材库', exact: true }).click(); assert.equal(await page.locator('.library-panel').count(), 0);
   await page.getByRole('button', { name: '收起实验面板', exact: true }).click(); assert(await page.locator('.side-panel').isHidden());
   const beforePan = await page.evaluate(() => ({ pose: window.__circuitlab.camera.getPose(), components: window.__circuitlab.store.getState().components.map(c => c.position) }));
-  await page.getByRole('button', { name: '向右平移视野', exact: true }).click();
-  await page.waitForFunction(before => { const next = window.__circuitlab.camera.getPose(); return next && Math.hypot(...next.target.map((v, i) => v - before[i])) > 0.1599; }, beforePan.pose.target);
+  assert.equal(await page.getByRole('toolbar', { name: '实验台操作' }).getByRole('button').count(), 7);
+  assert.equal(await page.getByRole('button', { name: /向[上下左右]平移视野/ }).count(), 0);
+  await page.getByRole('button', { name: '平移视角', exact: true }).click();
+  await page.mouse.move(800, 180); await page.mouse.down(); await page.mouse.move(910, 210, { steps: 12 }); await page.mouse.up();
+  await page.waitForFunction(before => { const next = window.__circuitlab.camera.getPose(); return next && Math.hypot(...next.target.map((v, i) => v - before[i])) > 0.05; }, beforePan.pose.target);
   const afterPan = await page.evaluate(() => ({ pose: window.__circuitlab.camera.getPose(), components: window.__circuitlab.store.getState().components.map(c => c.position) }));
   assert.deepEqual(beforePan.components, afterPan.components); assert.notDeepEqual(beforePan.pose.position, afterPan.pose.position);
   for (let i = 0; i < 3; i++) assert(Math.abs((beforePan.pose.position[i] - beforePan.pose.target[i]) - (afterPan.pose.position[i] - afterPan.pose.target[i])) < 1e-6);
   evidence.interactions.push({ action: 'fold-pan-without-orbit-or-moving-parts', before: beforePan.pose, after: afterPan.pose, sceneWidth }); await shot('02-wide-view');
+  await page.getByRole('button', { name: '选择与旋转视角', exact: true }).click();
   await page.getByRole('button', { name: '展开左侧器材库', exact: true }).click(); await page.getByRole('button', { name: '向下展开器材库', exact: true }).click(); await page.getByRole('button', { name: '展开实验面板', exact: true }).click();
+  let preview = await inspectorFor('psu'); assert((await preview.innerText()).includes('CC'));
+  await preview.getByRole('button', { name: '切换CH1 输出', exact: true }).click(); assert((await preview.innerText()).includes('OFF')); assert.equal(await preview.locator('.supply-channels > div').first().locator('strong').first().innerText(), '—');
+  await preview.getByRole('button', { name: '切换CH1 输出', exact: true }).click();
   let dialog = await consoleFor('psu'); assert((await dialog.innerText()).includes('CC'));
   await dialog.getByLabel('CH1 电流限制', { exact: true }).fill('0.02'); await dialog.getByLabel('CH1 电流限制', { exact: true }).press('Tab');
   const limited = await page.evaluate(() => window.__circuitlab.store.getState().result.elements.psu); assert(Math.abs(limited.current - 0.02) < 1e-8); evidence.interactions.push({ action: 'CC-control', current: limited.current, voltage: limited.voltage }); await shot('03-power-console');
@@ -55,9 +63,38 @@ try {
   assert((await dialog.boundingBox()).y < header.y - 40); await page.getByRole('button', { name: '关闭器材控制台', exact: true }).click();
   await page.getByRole('button', { name: '撤销', exact: true }).click(); assert.equal(await page.evaluate(() => window.__circuitlab.store.getState().components.find(c => c.id === 'psu').params.currentLimit), 0.05);
   await page.getByRole('button', { name: '重做', exact: true }).click(); assert.equal(await page.evaluate(() => window.__circuitlab.store.getState().components.find(c => c.id === 'psu').params.currentLimit), 0.02);
-  dialog = await consoleFor('dmm'); assert((await dialog.locator('.console-digital').innerText()).includes('0.20 V')); await dialog.getByRole('button', { name: '记录当前读数', exact: true }).click();
+  preview = await inspectorFor('dmm'); assert((await preview.locator('.console-digital').innerText()).includes('0.200 V'));
+  await preview.getByRole('button', { name: 'Ω', exact: true }).click(); assert.equal(await preview.locator('.console-digital strong').innerText(), '—');
+  await preview.getByRole('button', { name: 'DCV', exact: true }).click(); await shot('04a-dmm-inspector');
+  dialog = await consoleFor('dmm'); assert((await dialog.locator('.console-digital').innerText()).includes('0.200 V')); await dialog.getByRole('button', { name: '记录当前读数', exact: true }).click();
   assert.equal(await page.evaluate(() => window.__circuitlab.store.getState().measurements.length), 1); await shot('04-dmm-console'); await page.getByRole('button', { name: '关闭器材控制台', exact: true }).click();
-  await fixture('ac'); await mesh('shared-COM AC instrument inputs'); dialog = await consoleFor('scope');
+  await fixture('ac'); await mesh('shared-COM AC instrument inputs');
+  await page.getByRole('button', { name: '收起实验面板', exact: true }).click(); await page.waitForTimeout(1200);
+  const scopeClick = await page.evaluate(() => ({ point: window.__circuitlab.localScreen('scope', [-0.05, 0.23, 0.17]), position: window.__circuitlab.store.getState().components.find(c => c.id === 'scope').position }));
+  console.log('[bench] scope click projection', scopeClick);
+  await page.mouse.move(...scopeClick.point); await page.mouse.down();
+  assert.equal(await page.evaluate(() => window.__circuitlab.store.getState().selectedId), 'scope', '按下必须命中实际示波器');
+  await page.waitForTimeout(200); await page.mouse.up();
+  await page.getByRole('region', { name: '仪器实时预览' }).waitFor();
+  assert.equal(await page.evaluate(() => window.__circuitlab.store.getState().selectedId), 'scope');
+  assert.deepEqual(await page.evaluate(() => window.__circuitlab.store.getState().components.find(c => c.id === 'scope').position), scopeClick.position);
+  assert.equal(await page.getByRole('dialog').count(), 0);
+  evidence.interactions.push({ action: 'actual-scope-click-with-inspector-collapsed-keeps-selection-without-moving-device' });
+  preview = await inspectorFor('scope'); assert((await preview.innerText()).includes('-120.00°')); assert((await preview.innerText()).includes('24.000 V RMS'));
+  await preview.getByRole('button', { name: '自动垂直档位', exact: true }).click();
+  assert.deepEqual(await page.evaluate(() => { const p = window.__circuitlab.store.getState().components.find(c => c.id === 'scope').params; return [p.voltsDiv1, p.voltsDiv2]; }), [10, 10]);
+  await preview.getByRole('button', { name: 'CH2', exact: true }).click(); await preview.getByLabel('CH2 垂直档位', { exact: true }).selectOption('20');
+  await preview.getByLabel('水平时基', { exact: true }).selectOption('0.005');
+  const acquired = await preview.locator('polyline').first().getAttribute('points');
+  await preview.getByRole('button', { name: '切换采集', exact: true }).click(); await page.evaluate(() => window.__circuitlab.store.getState().setParam('ac', 'phaseVoltage', 48));
+  assert.equal(await preview.locator('polyline').first().getAttribute('points'), acquired);
+  dialog = await consoleFor('scope'); assert((await dialog.innerText()).includes('24.000 V')); await page.getByRole('button', { name: '关闭器材控制台', exact: true }).click();
+  preview = page.getByRole('region', { name: '仪器实时预览' }); assert.equal(await preview.locator('polyline').first().getAttribute('points'), acquired);
+  await preview.getByRole('button', { name: '切换采集', exact: true }).click(); assert((await preview.innerText()).includes('48.000 V RMS'));
+  await page.evaluate(() => window.__circuitlab.store.getState().setParam('ac', 'phaseVoltage', 24));
+  await shot('05a-scope-inspector');
+  evidence.interactions.push({ action: 'live-inspector-displays-PSU-DMM-scope-AUTO-gain-timebase-HOLD-shared-with-console' });
+  dialog = await consoleFor('scope');
   assert((await dialog.innerText()).includes('-120.00°')); assert((await dialog.innerText()).includes('24.000 V')); await shot('05-scope-console');
   const original = await dialog.getByRole('img', { name: '实际双通道电压波形' }).locator('polyline').first().getAttribute('points');
   await dialog.getByRole('button', { name: '切换采集', exact: true }).click();
@@ -67,6 +104,15 @@ try {
   assert.equal(await dialog.getByRole('img', { name: '实际双通道电压波形' }).locator('polyline').first().getAttribute('points'), original);
   await dialog.getByRole('button', { name: '切换采集', exact: true }).click(); assert.notEqual(await dialog.getByRole('img', { name: '实际双通道电压波形' }).locator('polyline').first().getAttribute('points'), original);
   evidence.interactions.push({ action: 'two-channel-phase-and-hold-across-console-reopen', phase: -120 }); await page.getByRole('button', { name: '关闭器材控制台', exact: true }).click();
+  await page.evaluate(() => window.__circuitlab.store.getState().loadLab('rc', true));
+  const capacitorId = await page.evaluate(() => window.__circuitlab.store.getState().components.find(c => c.type === 'capacitor').id);
+  preview = await inspectorFor(capacitorId); assert.equal(await preview.locator('polyline').count(), 0);
+  await preview.getByRole('button', { name: '开始暂态', exact: true }).click(); await page.waitForFunction(() => window.__circuitlab.store.getState().transient.samples.length > 10);
+  assert.equal(await page.getByRole('tab', { name: '属性', exact: true }).getAttribute('aria-selected'), 'true');
+  await preview.getByRole('button', { name: '暂停暂态', exact: true }).click();
+  const actualSamples = await page.evaluate(id => window.__circuitlab.store.getState().transient.samples.filter(s => Number.isFinite(s.values[id])).length, capacitorId);
+  assert.equal((await preview.locator('polyline').getAttribute('points')).split(' ').length, actualSamples);
+  evidence.interactions.push({ action: 'capacitor-inspector-start-pause-real-samples-only', points: actualSamples });
   await page.evaluate(() => window.__circuitlab.store.getState().loadLab('iv-characteristics', true)); await page.getByRole('tab', { name: '数据', exact: true }).click();
   for (const name of ['电阻', '小灯泡']) { await page.getByRole('button', { name, exact: true }).click(); const slider = page.getByLabel('伏安测量电源电压'); await slider.press('Home'); for (let i = 0; i < 5; i++) { await slider.press('PageUp'); await slider.press('PageUp'); await page.getByRole('button', { name: '记录当前读数', exact: true }).click(); } }
   const count = await page.evaluate(() => window.__circuitlab.store.getState().measurements.length); await page.getByRole('button', { name: '数据大屏', exact: true }).click(); dialog = page.getByRole('dialog');
