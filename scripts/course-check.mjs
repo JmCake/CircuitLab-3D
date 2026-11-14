@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
+import { settleNotifications } from './browser-evidence.mjs';
 
 const port = process.env.CIRCUITLAB_URL ? null : await new Promise((resolve, reject) => {
   const probe = createServer(); probe.on('error', reject); probe.listen(0, '127.0.0.1', () => { const p = probe.address().port; probe.close(() => resolve(p)); });
@@ -30,7 +31,7 @@ try {
   const data = () => page.getByRole('tab', { name: '数据', exact: true }).click();
   const snapshot = () => page.evaluate(() => window.__circuitlab.snapshot());
   const shot = async name => {
-    while (await page.getByRole('button', { name: '关闭提示', exact: true }).count()) await page.getByRole('button', { name: '关闭提示', exact: true }).first().click();
+    await settleNotifications(page);
     await page.screenshot({ path: path.join(out, name + '.png'), animations: 'disabled' });
   };
   async function load(id) {
@@ -112,7 +113,7 @@ try {
   await mobile.getByLabel('选择教学实验').selectOption('three-phase-star'); await mobile.getByRole('button', { name: '载入示范接线', exact: true }).click(); await mobile.getByRole('tab', { name: '数据', exact: true }).click();
   evidence.mobile = await mobile.evaluate(() => ({ width: innerWidth, scrollWidth: document.documentElement.scrollWidth, libraryOpen: window.__circuitlab.store.getState().libraryOpen }));
   assert.equal(evidence.mobile.width, 390); assert(evidence.mobile.scrollWidth <= 390); assert.equal(evidence.mobile.libraryOpen, false);
-  while (await mobile.getByRole('button', { name: '关闭提示', exact: true }).count()) await mobile.getByRole('button', { name: '关闭提示', exact: true }).first().click();
+  await settleNotifications(mobile);
   await mobile.screenshot({ path: path.join(out, '10-mobile.png'), animations: 'disabled' }); await mobile.close(); assert.deepEqual(evidence.errors, []);
   await fs.writeFile(path.join(out, 'evidence.json'), JSON.stringify(evidence, null, 2)); console.log('[course] PASS', JSON.stringify(evidence, null, 2));
 } finally { await browser.close(); server?.kill(); }

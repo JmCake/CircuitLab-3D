@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { createServer } from 'node:net';
 import { spawn } from 'node:child_process';
+import { settleNotifications } from './browser-evidence.mjs';
 const port = await new Promise(resolve => { const s = createServer(); s.listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => resolve(p)); }); });
 const server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { stdio: 'ignore' });
 const url = `http://127.0.0.1:${port}/`, out = path.resolve('screenshots/bench-v0.4'); await fs.mkdir(out, { recursive: true });
@@ -16,7 +17,7 @@ try {
   page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, acceptDownloads: true });
   page.on('pageerror', e => evidence.errors.push(String(e))); page.on('console', m => { if (m.type() === 'error') evidence.errors.push(m.text()); });
   await page.goto(url); await page.waitForFunction(() => window.__circuitlab?.renderStats()?.frame > 10);
-  const shot = async name => { while (await page.getByRole('button', { name: '关闭提示', exact: true }).count()) await page.getByRole('button', { name: '关闭提示', exact: true }).first().click(); await page.screenshot({ path: path.join(out, name + '.png'), animations: 'disabled' }); };
+  const shot = async name => { await settleNotifications(page); await page.screenshot({ path: path.join(out, name + '.png'), animations: 'disabled' }); };
   async function fixture(kind) {
     await page.evaluate(async kind => {
       const { createDefaultParams } = await import('/src/circuit/catalog.ts'); const s = window.__circuitlab.store;
