@@ -5,6 +5,7 @@ import { CameraRig } from './CameraRig';
 import { InteractionController } from './InteractionController';
 import { SceneEnvironment } from './SceneEnvironment';
 import { WireSystem } from './WireSystem';
+import { CourseTestPoints } from './CourseTestPoints';
 
 function CircuitBench() {
   const components = useLabStore((state) => state.components);
@@ -28,6 +29,7 @@ export function SceneRoot() {
       <SceneEnvironment />
       <CircuitBench />
       <WireSystem />
+      <CourseTestPoints />
       <CameraRig />
       <InteractionController />
     </Suspense>

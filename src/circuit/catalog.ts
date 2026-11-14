@@ -1,3 +1,4 @@
+import { INSTRUMENT_DEFINITIONS } from './instrumentDefinitions';
 import type {
   ComponentDefinition,
   ComponentType,
@@ -7,16 +8,20 @@ import type {
 } from './types';
 
 export const BENCH = {
-  width: 2.24,
-  depth: 1.16,
+  width: 2.8,
+  depth: 1.4,
   thickness: 0.052,
   surfaceY: 0,
   height: 0.79,
-  bounds: { minX: -0.96, maxX: 0.96, minZ: -0.44, maxZ: 0.46 },
+  bounds: { minX: -1.26, maxX: 1.26, minZ: -0.59, maxZ: 0.59 },
   edgePadding: 0.035,
 } as const;
 
 export const DEFAULT_LAYOUT: Record<ComponentType, { position: [number, number]; rotationY: number }> = {
+  'programmable-supply': { position: [-0.88, -0.22], rotationY: 0 },
+  multimeter: { position: [0.8, 0.22], rotationY: 0 },
+  oscilloscope: { position: [0.8, -0.27], rotationY: 0 },
+  'three-phase-source': { position: [-0.65, -0.2], rotationY: 0 },
   'power-supply': { position: [-0.56, -0.15], rotationY: 0.055 },
   switch: { position: [-0.01, 0.22], rotationY: -0.03 },
   resistor: { position: [0.08, -0.15], rotationY: 0.02 },
@@ -89,6 +94,21 @@ function breadboardPorts(): PortDefinition[] {
 }
 
 export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> = {
+  ...INSTRUMENT_DEFINITIONS,
+  'three-phase-source': {
+    type: 'three-phase-source', name: '三相交流电源', shortName: '三相电源', prefix: 'AC', category: 'source',
+    description: '可调对称三相电源，A、B、C 与中性点 N 独立接线。电压设定与仪表均采用有效值。',
+    accent: '#526b88', footprint: [0.48, 0.35], height: 0.25,
+    ports: [post('a', 'A 相', 'bidirectional', -0.155, 0.061, 0.174), post('b', 'B 相', 'bidirectional', -0.052, 0.061, 0.174), post('c', 'C 相', 'bidirectional', 0.052, 0.061, 0.174), post('n', '中性点 N', 'bidirectional', 0.155, 0.061, 0.174)],
+    defaults: { phaseVoltage: 24, frequencyHz: 50, sequence: 'ABC', enabled: true, internalResistance: 0.2, maxCurrent: 2 },
+    params: [
+      { key: 'phaseVoltage', label: '相电压有效值', kind: 'slider', min: 0, max: 230, step: 1, unit: 'V', precision: 0, suggestions: [12, 24, 36, 110, 220] },
+      { key: 'frequencyHz', label: '频率', kind: 'select', options: [{ value: 50, label: '50 Hz' }, { value: 60, label: '60 Hz' }] },
+      { key: 'sequence', label: '相序', kind: 'select', options: [{ value: 'ABC', label: 'ABC' }, { value: 'ACB', label: 'ACB' }] },
+      { key: 'enabled', label: '输出', kind: 'switch' },
+    ],
+    modelNote: '单频正弦有效值相量模型；ABC 相位为 0°、−120°、+120°，每相串联 0.2 Ω。当前交流网络支持电阻、开关及交流电压/电流表，不含电机或非线性交流波形。',
+  },
   'power-supply': {
     type: 'power-supply',
     name: '直流稳压电源',
@@ -139,7 +159,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
     shortName: '电流表',
     prefix: 'AM',
     category: 'measurement',
-    description: '低内阻直流电流表，应串入待测支路。支持 2 mA / 20 mA / 200 mA / 2 A 量程。',
+    description: '低内阻 AC/DC 电流表，应串入待测支路。交流显示有效值；支持 2 mA / 20 mA / 200 mA / 2 A 量程。',
     accent: '#2c6b74',
     footprint: [0.26, 0.21],
     height: 0.17,
@@ -147,8 +167,9 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
       post('positive', '电流输入 +（红）', 'positive', -0.052, 0.052, 0.11),
       post('negative', '电流输出 −（黑）', 'negative', 0.052, 0.052, 0.11),
     ],
-    defaults: { range: 0.02, internalResistance: 0.1 },
+    defaults: { range: 0.02, internalResistance: 0.1, mode: 'dc' },
     params: [
+      { key: 'mode', label: '测量模式', kind: 'select', options: [{ value: 'dc', label: '直流 DC' }, { value: 'ac', label: '交流 AC · 有效值' }] },
       {
         key: 'range',
         label: '电流量程',
@@ -162,7 +183,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
         description: '量程过小会提示超量程，但不会产生无穷大读数。',
       },
     ],
-    modelNote: '串联 0.1 Ω 采样电阻；读数带符号，负值表示电流由黑端流入。',
+    modelNote: '串联 0.1 Ω 采样电阻；直流读数带符号，负值表示电流由黑端流入；交流显示单频有效值。',
   },
   voltmeter: {
     type: 'voltmeter',
@@ -170,7 +191,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
     shortName: '电压表',
     prefix: 'VM',
     category: 'measurement',
-    description: '高输入阻抗直流电压表，应并联在待测元件两端。支持 2 V / 20 V / 200 V 量程。',
+    description: '高输入阻抗 AC/DC 电压表，应并联在待测元件两端。交流显示有效值；支持 2 V / 20 V / 200 V 量程。',
     accent: '#3d6387',
     footprint: [0.26, 0.21],
     height: 0.17,
@@ -178,8 +199,9 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
       post('positive', '电压输入 +（红）', 'positive', -0.052, 0.052, 0.11),
       post('negative', '公共端 −（黑）', 'negative', 0.052, 0.052, 0.11),
     ],
-    defaults: { range: 20, internalResistance: 10_000_000 },
+    defaults: { range: 20, internalResistance: 10_000_000, mode: 'dc' },
     params: [
+      { key: 'mode', label: '测量模式', kind: 'select', options: [{ value: 'dc', label: '直流 DC' }, { value: 'ac', label: '交流 AC · 有效值' }] },
       {
         key: 'range',
         label: '电压量程',
@@ -404,7 +426,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
     params: [
       {
         key: 'resistance',
-        label: '冷态电阻',
+        label: '额定热态电阻',
         kind: 'number',
         min: 10,
         max: 500,
@@ -425,7 +447,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
         suggestions: [0.1, 0.3, 0.5, 1],
       },
     ],
-    modelNote: '线性电阻模型 + 功率—亮度映射；未建模钨丝热效应导致的电阻变化。',
+    modelNote: '钨丝灯稳态热电阻经验模型，额定点由热态电阻与额定功率确定；冷阻为热阻的 1/10。体现温升导致的非线性，不含热惯性与烧毁，不等同于实测灯泡曲线。',
   },
   breadboard: {
     type: 'breadboard',
@@ -445,6 +467,7 @@ export const COMPONENT_DEFINITIONS: Record<ComponentType, ComponentDefinition> =
 };
 
 export const COMPONENT_ORDER: ComponentType[] = [
+  'programmable-supply', 'multimeter', 'oscilloscope',
   'power-supply',
   'ammeter',
   'voltmeter',

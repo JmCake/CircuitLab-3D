@@ -1,0 +1,81 @@
+{
+  "labs": [
+    {
+      "id": "ohms-law",
+      "wires": 6,
+      "collisions": [],
+      "bodies": 319
+    },
+    {
+      "id": "series",
+      "wires": 7,
+      "collisions": [],
+      "bodies": 368
+    },
+    {
+      "id": "parallel",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 368
+    },
+    {
+      "id": "kirchhoff",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 368
+    },
+    {
+      "id": "led",
+      "wires": 7,
+      "collisions": [],
+      "bodies": 363
+    },
+    {
+      "id": "rc",
+      "wires": 7,
+      "collisions": [],
+      "bodies": 368
+    },
+    {
+      "id": "thevenin",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 409
+    },
+    {
+      "id": "superposition",
+      "wires": 9,
+      "collisions": [],
+      "bodies": 505
+    },
+    {
+      "id": "max-power",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 409
+    }
+  ],
+  "interactions": [
+    {
+      "action": "mouse-drag-unconnected-box",
+      "before": [
+        0,
+        0.18
+      ],
+      "after": [
+        -0.16623234497647177,
+        0.26311625060185784
+      ],
+      "collisions": []
+    },
+    {
+      "action": "keyboard-rotate-box",
+      "collisions": []
+    },
+    {
+      "action": "blocked-socket-warning-and-recovery",
+      "preservedWires": 6
+    }
+  ],
+  "errors": []
+}

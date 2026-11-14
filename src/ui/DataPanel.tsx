@@ -16,9 +16,12 @@ import {
   Upload,
 } from 'lucide-react';
 import type { Diagnostic, MeasurementRow } from '../circuit';
-import { getLab } from '../experiments/labs';
+import { COURSE_LABS, getLab } from '../experiments/labs';
+import { CourseDataPanel } from './CourseDataPanel';
 import { useLabStore } from '../store/labStore';
 import { validateWorkspace } from '../store/persistence';
+import { NetworkAnalysisPanel } from './NetworkAnalysisPanel';
+import { measurementIssue } from '../circuit/measurement';
 import {
   formatCurrent,
   formatResistance,
@@ -83,25 +86,15 @@ function TransientChart() {
   const resumeTransient = useLabStore((state) => state.resumeTransient);
   const pauseTransient = useLabStore((state) => state.pauseTransient);
   const resetTransient = useLabStore((state) => state.resetTransient);
+  const setParam = useLabStore((state) => state.setParam);
   const capacitor = components.find((component) => component.type === 'capacitor');
   const resistor = components.find((component) => component.type === 'resistor');
   const supply = components.find(
     (component) => component.type === 'power-supply' && Boolean(component.params.enabled),
   );
+  const dischargeSupply = components.find(c => c.type === 'power-supply');
 
-  if (!capacitor) {
-    return (
-      <div className="panel-card">
-        <div className="panel-card-title">
-          <RotateCcw size={15} />
-          RC 暂态
-        </div>
-        <p className="muted-copy">
-          当前没有电容。添加电容后，可启动后向欧拉暂态，观察电容电压随时间变化。
-        </p>
-      </div>
-    );
-  }
+  if (!capacitor) return null;
 
   const values = transient.samples.map(
     (sample) => sample.values[capacitor.id] ?? 0,
@@ -114,21 +107,24 @@ function TransientChart() {
       : null;
   const targetVoltage = Math.abs(Number(supply?.params.voltage ?? 5));
   const maxVoltage = Math.max(targetVoltage, ...values, 0.01);
+  const minVoltage = Math.min(0, ...values);
   const width = 310;
   const height = 96;
   const paddingX = 8;
   const paddingY = 10;
-  const maxTime = Math.max(0.02, transient.time);
+  const minTime = transient.samples[0]?.time ?? 0;
+  const maxTime = Math.max(minTime + 0.02, transient.time);
   const chartPoints = values.map((value, index) => {
     const t = transient.samples[index]?.time ?? 0;
-    const x = paddingX + (t / maxTime) * (width - paddingX * 2);
-    const y = height - paddingY - (value / maxVoltage) * (height - paddingY * 2);
+    const x = paddingX + ((t - minTime) / (maxTime - minTime)) * (width - paddingX * 2);
+    const y = height - paddingY - ((value - minVoltage) / (maxVoltage - minVoltage)) * (height - paddingY * 2);
     return `${x.toFixed(2)},${y.toFixed(2)}`;
   });
   const linePoints = chartPoints.join(' ');
+  const zeroY = height - paddingY - ((0 - minVoltage) / (maxVoltage - minVoltage)) * (height - paddingY * 2);
   const areaPoints =
     values.length > 1
-      ? `${paddingX},${height - paddingY} ${linePoints} ${width - paddingX},${height - paddingY}`
+      ? `${paddingX},${zeroY} ${linePoints} ${width - paddingX},${zeroY}`
       : '';
   const currentVoltage = transient.active
     ? transient.capacitorVoltages[capacitor.id] ?? 0
@@ -149,7 +145,7 @@ function TransientChart() {
           <strong>{formatTime(transient.time)}</strong>
         </div>
         <div>
-          <span>理论 τ = RC</span>
+          <span>名义 RC（不含仪表）</span>
           <strong>{tau !== null ? formatTime(tau) : '—'}</strong>
         </div>
         <div>
@@ -186,7 +182,7 @@ function TransientChart() {
               className="chart-line is-empty"
             />
           )}
-          <text x={paddingX} y={height - 1} className="chart-label">0 s</text>
+          <text x={paddingX} y={height - 1} className="chart-label">{minTime.toFixed(2)} s</text>
           <text x={width - paddingX} y={height - 1} textAnchor="end" className="chart-label">
             {maxTime.toFixed(2)} s
           </text>
@@ -195,7 +191,7 @@ function TransientChart() {
       </div>
       <div className="chart-legend">
         <span><i />电容端电压</span>
-        <span>{transient.samples.length} 个采样点 · Δt 20 ms</span>
+        <span>{transient.samples.length} 点</span>
       </div>
       <div className="button-row wrap">
         {!transient.active ? (
@@ -223,15 +219,35 @@ function TransientChart() {
           <RotateCcw size={14} />
           重置
         </button>
+        <button type="button" className="button button-ghost compact" disabled={!transient.active || !dischargeSupply}
+          onClick={() => { if (dischargeSupply) { setParam(dischargeSupply.id, 'enabled', true); setParam(dischargeSupply.id, 'voltage', 0); } }}>
+          电源置 0 V 放电
+        </button>
+        <button type="button" className="button button-ghost compact" disabled={transient.samples.length < 2}
+          onClick={() => {
+            const caps = components.filter(c => c.type === 'capacitor');
+            const lines = [['仿真时间(s)', ...caps.map(c => `${c.name}电压(V)`)].map(csvEscape).join(',')];
+            for (const sample of transient.samples) lines.push([sample.time, ...caps.map(c => sample.values[c.id] ?? null)].map(csvEscape).join(','));
+            downloadText('circuitlab-transient.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8');
+          }}><Download size={14} />导出曲线 CSV</button>
       </div>
-      <p className="param-help">
-        后向欧拉步长 20 ms；电压、电流读数来自当前拓扑的每一步数值解，不使用预置曲线。
-      </p>
+      <details className="model-note collapsible">
+        <summary>暂态模型</summary>
+        <p>
+        后向欧拉积分 2 ms、采样 20 ms。前台按实际时间推进，后台冻结，积压时暂停。快速暂态精度受限；放电按钮令电源电动势为零并保留内阻。曲线最多保留最近 1200 点。
+        </p>
+      </details>
     </div>
   );
 }
 
-export function DataPanel() {
+export function DataPanel({ presentation = false }: { presentation?: boolean }) {
+  const id = useLabStore(s => s.activeLabId);
+  const mode = useLabStore(s => s.mode);
+  return mode === 'guided' && COURSE_LABS.some(l => l.id === id) ? <CourseDataPanel presentation={presentation} /> : <LegacyDataPanel />;
+}
+
+function LegacyDataPanel() {
   const components = useLabStore((state) => state.components);
   const result = useLabStore((state) => state.result);
   const measurements = useLabStore((state) => state.measurements);
@@ -246,21 +262,24 @@ export function DataPanel() {
   const fileInput = useRef<HTMLInputElement>(null);
   const lab = getLab(activeLabId);
   const labRows = measurements.filter((row) => row.labId === activeLabId);
+  const recordingIssue = measurementIssue(components, result);
 
-  const supply = components.find((component) => component.type === 'power-supply');
+  const supply = components.find((component) => component.type === 'power-supply' || component.type === 'programmable-supply');
+  const dmm = components.find(c => c.type === 'multimeter');
+  const dmmResult = dmm ? result.elements[dmm.id] : undefined;
   const ammeter = components.find((component) => component.type === 'ammeter');
   const voltmeter = components.find((component) => component.type === 'voltmeter');
   const capacitor = components.find((component) => component.type === 'capacitor');
   const resistor = components.find((component) => component.type === 'resistor');
   const supplyElement = supply ? result.elements[supply.id] : undefined;
   const voltageReading = result.solved
-    ? (voltmeter ? result.elements[voltmeter.id]?.reading : undefined) ??
+    ? (voltmeter ? result.elements[voltmeter.id]?.reading : undefined) ?? (dmmResult?.readingUnit === 'V' ? dmmResult.reading : undefined) ??
       (capacitor ? result.elements[capacitor.id]?.voltage : undefined) ??
       (resistor ? result.elements[resistor.id]?.voltage : undefined) ??
       supplyElement?.voltage
     : null;
   const currentReading = result.solved
-    ? (ammeter ? result.elements[ammeter.id]?.reading : undefined) ??
+    ? (ammeter ? result.elements[ammeter.id]?.reading : undefined) ?? (dmmResult?.readingUnit === 'A' ? dmmResult.reading : undefined) ??
       (resistor ? result.elements[resistor.id]?.current : undefined) ??
       supplyElement?.current
     : null;
@@ -314,7 +333,6 @@ export function DataPanel() {
     <div className="panel-stack">
       <div className="data-heading">
         <div>
-          <span className="panel-eyebrow">MEASUREMENT LOG</span>
           <h2>{lab.index} · {lab.title}</h2>
         </div>
         <span className="record-count">{labRows.length} 条记录</span>
@@ -324,12 +342,10 @@ export function DataPanel() {
         <div className="readout-card">
           <span className="readout-label">当前电压</span>
           <strong>{formatVoltage(voltageReading)}</strong>
-          <small>{voltmeter ? '电压表并联测量值' : '电路等效读数'}</small>
         </div>
         <div className="readout-card">
           <span className="readout-label">当前电流</span>
           <strong>{formatCurrent(currentReading)}</strong>
-          <small>{ammeter ? '电流表串联测量值' : '支路计算值'}</small>
         </div>
       </div>
       <div className="data-actions-row">
@@ -337,7 +353,8 @@ export function DataPanel() {
           type="button"
           className="button button-primary"
           onClick={recordMeasurement}
-          disabled={!result.solved}
+          disabled={Boolean(recordingIssue)}
+          title={recordingIssue ?? '记录当前有效测量值'}
         >
           <Plus size={15} />
           记录当前读数
@@ -347,11 +364,10 @@ export function DataPanel() {
           保存工程
         </button>
       </div>
-      <p className="data-note">
-        记录值直接取自当前仿真快照；若修改接线或参数，请重新记录。教学判定会同时检查拓扑与数值。
-      </p>
+      {recordingIssue && <p className="data-note">{recordingIssue}</p>}
 
       <TransientChart />
+      <NetworkAnalysisPanel />
 
       <div className="panel-card">
         <div className="panel-card-title">
@@ -362,7 +378,6 @@ export function DataPanel() {
         {labRows.length === 0 ? (
           <div className="empty-table">
             <span>尚无本实验的测量数据</span>
-            <small>完成接线并点击“记录当前读数”后出现在这里。</small>
           </div>
         ) : (
           <div className="measurement-table-wrap">
@@ -419,11 +434,7 @@ export function DataPanel() {
         <div className="panel-card-title">
           <FileJson size={15} />
           工程存档与恢复
-          <span>v1</span>
         </div>
-        <p className="param-help">
-          保存器材类型、参数、桌面变换、稳定端口 ID、导线拓扑和实验记录。恢复时会重新建立求解器状态并重新计算。
-        </p>
         <div className="button-grid">
           <button type="button" className="button button-secondary compact" onClick={exportJson}>
             <Download size={14} />
@@ -472,7 +483,7 @@ export function DataPanel() {
         />
       </div>
 
-      <div className="panel-card diagnostics-card">
+      {diagnostics.length > 0 && <div className="panel-card diagnostics-card">
         <div className="panel-card-title">
           <AlertTriangle size={15} />
           求解诊断
@@ -489,18 +500,13 @@ export function DataPanel() {
               <div className={`diagnostic-item ${item.level}`} key={`${item.code}-${index}`}>
                 {diagnosticIcon(item)}
                 <div>
-                  <strong>{item.code}</strong>
                   <p>{item.message}</p>
                 </div>
               </div>
             ))}
           </div>
         )}
-        <p className="param-help">
-          直流线性网络使用节点分析；电源为带内部电阻的有限电流模型。异常时不会显示 NaN、Infinity
-          或沿用旧读数。
-        </p>
-      </div>
+      </div>}
     </div>
   );
 }

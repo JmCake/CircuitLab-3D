@@ -10,6 +10,9 @@ import {
   Minus,
   MoveHorizontal,
   Plus,
+  ChevronUp,
+  ChevronDown,
+  PanelLeftClose,
   SlidersHorizontal,
   ToggleLeft,
   Trash2,
@@ -22,8 +25,14 @@ import {
   type ComponentType,
 } from '../circuit';
 import { useLabStore } from '../store/labStore';
+import { getLab } from '../experiments/labs';
+import { useViewStore } from '../store/viewStore';
 
 const PART_ICONS: Record<ComponentType, LucideIcon> = {
+  'three-phase-source': Activity,
+  'programmable-supply': Zap,
+  multimeter: Gauge,
+  oscilloscope: Activity,
   'power-supply': Zap,
   ammeter: Gauge,
   voltmeter: Activity,
@@ -37,20 +46,17 @@ const PART_ICONS: Record<ComponentType, LucideIcon> = {
   breadboard: Grid3X3,
 };
 
-const SECTIONS: { title: string; hint: string; items: ComponentType[] }[] = [
+const SECTIONS: { title: string; items: ComponentType[] }[] = [
   {
     title: '电源与测量',
-    hint: 'SOURCE & METERS',
-    items: ['power-supply', 'ammeter', 'voltmeter'],
+    items: ['power-supply', 'programmable-supply', 'three-phase-source', 'ammeter', 'voltmeter', 'multimeter', 'oscilloscope'],
   },
   {
     title: '基础元件',
-    hint: 'PASSIVE & CONTROL',
     items: ['resistor', 'resistor-box', 'rheostat', 'switch'],
   },
   {
-    title: '半导体与连接',
-    hint: 'SEMICONDUCTOR KIT',
+    title: '其他器材',
     items: ['led', 'bulb', 'capacitor', 'breadboard'],
   },
 ];
@@ -63,6 +69,14 @@ export function LibraryPanel() {
   const libraryOpen = useLabStore((state) => state.libraryOpen);
   const wireColor = useLabStore((state) => state.wireColor);
   const setWireColor = useLabStore((state) => state.setWireColor);
+  const activeLabId = useLabStore(s => s.activeLabId);
+  const mode = useLabStore(s => s.mode);
+  const folded = useViewStore(s => s.libraryFolded);
+  const available = new Set(getLab(activeLabId).kit);
+  if (activeLabId === 'iv-characteristics') available.add('bulb');
+  if (available.has('power-supply')) available.add('programmable-supply');
+  available.add('multimeter'); available.add('oscilloscope');
+  const sections = SECTIONS.map(s => ({ ...s, items: s.items.filter(t => mode === 'free' || available.has(t)) })).filter(s => s.items.length > 0);
 
   if (!libraryOpen) return null;
 
@@ -72,23 +86,19 @@ export function LibraryPanel() {
   }
 
   return (
-    <aside className="library-panel">
+    <aside className={`library-panel ${folded ? 'is-folded' : ''}`}>
       <div className="panel-heading library-heading">
         <div>
-          <div className="panel-eyebrow">EQUIPMENT LIBRARY</div>
           <h2>器材库</h2>
         </div>
-        <span className="panel-count">{components.length} 件</span>
+        <button className="icon-button" aria-label={folded ? '向下展开器材库' : '向上折叠器材库'} onClick={() => useViewStore.getState().setLibraryFolded(!folded)}>{folded ? <ChevronDown size={17} /> : <ChevronUp size={17} />}</button>
+        <button className="icon-button" aria-label="侧边收起器材库" onClick={() => useLabStore.getState().setLibraryOpen(false)}><PanelLeftClose size={17} /></button>
       </div>
-      <p className="library-hint">
-        拖入实验台，或点击器材快速添加。所有模型与端口均由代码程序化生成。
-      </p>
       <div className="library-scroll">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <section className="library-section" key={section.title}>
             <div className="library-section-heading">
               <span>{section.title}</span>
-              <small>{section.hint}</small>
             </div>
             <div className="part-list">
               {section.items.map((type) => {
@@ -125,7 +135,6 @@ export function LibraryPanel() {
                         {definition.name}
                         {count > 0 && <em>×{count}</em>}
                       </span>
-                      <span className="part-description">{definition.description}</span>
                     </span>
                     <span className="part-add">
                       <Plus size={15} />

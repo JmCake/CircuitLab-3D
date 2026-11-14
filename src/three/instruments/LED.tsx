@@ -7,6 +7,7 @@ import { getGlowTexture, LabelPlane } from '../graphics';
 import { MATERIALS } from '../materials';
 import { InstrumentFeet, Port3D, Screw } from '../parts';
 import type { InstrumentModelProps } from './types';
+import { useAnimationWake } from '../useAnimationWake';
 
 const LED_COLORS: Record<string, { body: string; emissive: string; glass: string }> = {
   red: { body: '#9d2f27', emissive: '#ff4d38', glass: '#b64a3c' },
@@ -41,9 +42,11 @@ export function LED({ component, element }: InstrumentModelProps) {
   const glowTexture = useMemo(() => getGlowTexture(), []);
   const brightness = useRef(0);
   const target = Math.min(1.25, Math.max(0, element?.brightness ?? 0));
+  useAnimationWake(target);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     brightness.current = THREE.MathUtils.damp(brightness.current, target, 9, delta);
+    if (Math.abs(brightness.current - target) > 0.0001) state.invalidate();
     const level = brightness.current;
     if (domeMaterial.current) {
       domeMaterial.current.emissiveIntensity = 0.08 + level * 3.8;

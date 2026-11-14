@@ -5,9 +5,11 @@ import * as THREE from 'three';
 import type { ComponentDefinition, LabComponent, PortDefinition } from '../circuit';
 import { getDefinition, makePortId } from '../circuit';
 import { useLabStore } from '../store/labStore';
+import { useViewStore } from '../store/viewStore';
 import { LabelPlane, useDrawTexture } from './graphics';
 import { MATERIALS, SHARED_GEOMETRY } from './materials';
 import { registerPortTarget, unregisterPortTarget } from './portRegistry';
+import { useAnimationWake } from './useAnimationWake';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
@@ -107,6 +109,7 @@ export function InstrumentFrame({ component, selected, children }: InstrumentFra
       position={[component.position[0], 0, component.position[1]]}
       rotation={[0, component.rotationY, 0]}
       onPointerDown={handlePointerDown}
+      onDoubleClick={event => { event.stopPropagation(); useViewStore.getState().openConsole(component.id); }}
       userData={{ componentId: component.id, interactive: 'component' }}
     >
       {children}
@@ -361,10 +364,12 @@ export function KnurledKnob({
   disabled = false,
 }: KnurledKnobProps) {
   const rotor = useRef<THREE.Group>(null);
+  useAnimationWake(angle);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!rotor.current) return;
     rotor.current.rotation.z = THREE.MathUtils.damp(rotor.current.rotation.z, angle, 14, delta);
+    if (Math.abs(rotor.current.rotation.z - angle) > 0.0001) state.invalidate();
   });
 
   const handleDown = (event: ThreeEvent<PointerEvent>) => {
@@ -545,10 +550,12 @@ export function RockerSwitch({
 }: RockerSwitchProps) {
   const rotor = useRef<THREE.Group>(null);
   const target = on ? -0.38 : 0.38;
+  useAnimationWake(target);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!rotor.current) return;
     rotor.current.rotation.x = THREE.MathUtils.damp(rotor.current.rotation.x, target, 18, delta);
+    if (Math.abs(rotor.current.rotation.x - target) > 0.0001) state.invalidate();
   });
 
   const handleToggleDown = (event: ThreeEvent<PointerEvent>) => {

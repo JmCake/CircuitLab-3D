@@ -29,3 +29,49 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  browser_suites:
+    name: browser-${{ matrix.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - suite: interactions
+            command: npm run test:e2e
+          - suite: courses
+            command: npm run test:e2e:advanced
+          - suite: wires
+            command: npm run test:e2e:wires
+          - suite: instruments
+            command: npm run test:e2e:instruments
+    env:
+      CHROME_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify system Chrome
+        run: google-chrome --version
+      - name: Run browser suite
+        run: ${{ matrix.command }}
+      - name: Save browser evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence-${{ matrix.suite }}
+          path: screenshots/
+          retention-days: 3
+
+  browser-checks:
+    needs: browser_suites
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every browser suite to pass
+        run: test '${{ needs.browser_suites.result }}' = 'success'

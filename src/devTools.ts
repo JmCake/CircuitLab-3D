@@ -1,6 +1,7 @@
 import { getPortWorldPosition, parsePortId } from './circuit';
 import { useLabStore } from './store/labStore';
 import { cameraBridge } from './three/cameraBridge';
+import { inspectRenderedWires } from './three/wireInspection';
 
 /**
  * 仅在 Vite 开发环境挂载的自动化测试入口。
@@ -9,9 +10,10 @@ import { cameraBridge } from './three/cameraBridge';
 export function installDevTools(): void {
   if (!import.meta.env.DEV) return;
   const api = {
-    version: '0.1.0',
+    version: '0.4.0',
     store: useLabStore,
     camera: cameraBridge,
+    wireClearance: inspectRenderedWires,
     portScreen(portId: string): [number, number] | null {
       const state = useLabStore.getState();
       const parsed = parsePortId(portId);

@@ -10,6 +10,16 @@ function requiredCounts(types: ComponentType[]): Map<ComponentType, number> {
 }
 
 describe('教学实验装配与真实求解', () => {
+  it('蓝色 LED 在 20–25 mA 之间不能被误判为安全电流', () => {
+    const circuit = buildLabCircuit('led', true);
+    circuit.components.find(c => c.type === 'led')!.params.color = 'blue';
+    circuit.components.find(c => c.type === 'resistor')!.params.resistance = 80;
+    const context: LabContext = { ...circuit, result: simulateCircuit(circuit), measurements: [], transient: { running: false, time: 0, samples: 0, lastCapacitorVoltage: 0 } };
+    const led = circuit.components.find(c => c.type === 'led')!;
+    expect(context.result.elements[led.id].current).toBeGreaterThan(0.02);
+    expect(context.result.elements[led.id].current).toBeLessThan(0.025);
+    expect(LABS.find(l => l.id === 'led')!.steps.find(s => s.id === 'safe')!.check(context).done).toBe(false);
+  });
   for (const lab of LABS) {
     it(`${lab.index} ${lab.title} 的示范接线可以求解，且覆盖完整器材清单`, () => {
       const built = buildLabCircuit(lab.id, true);

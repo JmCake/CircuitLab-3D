@@ -8,14 +8,16 @@ import { LabelPlane } from '../graphics';
 import { MATERIALS } from '../materials';
 import { InstrumentFeet, Port3D, Screw } from '../parts';
 import type { InstrumentModelProps } from './types';
+import { useAnimationWake } from '../useAnimationWake';
 
 export function Switch({ component }: InstrumentModelProps) {
   const closed = Boolean(component.params.closed);
   const setParam = useLabStore((state) => state.setParam);
   const lever = useRef<THREE.Group>(null);
   const targetAngle = closed ? 0.04 : -0.62;
+  useAnimationWake(targetAngle);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!lever.current) return;
     lever.current.rotation.x = THREE.MathUtils.damp(
       lever.current.rotation.x,
@@ -23,6 +25,7 @@ export function Switch({ component }: InstrumentModelProps) {
       15,
       delta,
     );
+    if (Math.abs(lever.current.rotation.x - targetAngle) > 0.0001) state.invalidate();
   });
 
   const toggle = (event: ThreeEvent<PointerEvent>) => {

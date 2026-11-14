@@ -2,11 +2,13 @@ import type { LabComponent } from '../../circuit';
 import { useLabStore } from '../../store/labStore';
 import { InstrumentFrame } from '../parts';
 import { Breadboard } from './Breadboard';
+import { ProgrammableSupply, Multimeter, Oscilloscope } from './BenchInstruments';
 import { Bulb } from './Bulb';
 import { Capacitor } from './Capacitor';
 import { LED } from './LED';
 import { Meter } from './Meter';
 import { PowerSupply } from './PowerSupply';
+import { ThreePhaseSource } from './ThreePhaseSource';
 import { Resistor } from './Resistor';
 import { ResistorBox } from './ResistorBox';
 import { Rheostat } from './Rheostat';
@@ -24,6 +26,11 @@ export function InstrumentRenderer({
 
   const model = (() => {
     switch (component.type) {
+      case 'programmable-supply': return <ProgrammableSupply {...commonProps} />;
+      case 'multimeter': return <Multimeter {...commonProps} />;
+      case 'oscilloscope': return <Oscilloscope {...commonProps} />;
+      case 'three-phase-source':
+        return <ThreePhaseSource {...commonProps} />;
       case 'power-supply':
         return <PowerSupply {...commonProps} />;
       case 'ammeter':

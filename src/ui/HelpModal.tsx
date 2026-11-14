@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Cable,
   CircuitBoard,
@@ -13,17 +13,28 @@ import {
 } from 'lucide-react';
 
 export function HelpModal({ onClose }: { onClose: () => void }) {
+  const modalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    modalRef.current?.querySelector<HTMLButtonElement>('button')?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
+      if (event.key === 'Tab' && modalRef.current) {
+        const targets = Array.from(modalRef.current.querySelectorAll<HTMLElement>('button, a[href], input, select, [tabindex="0"]'));
+        const first = targets[0];
+        const last = targets[targets.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
     };
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => { window.removeEventListener('keydown', onKeyDown); previousFocus?.focus(); };
   }, [onClose]);
 
   return (
     <div className="modal-backdrop" role="presentation" onPointerDown={onClose}>
       <div
+        ref={modalRef}
         className="help-modal"
         role="dialog"
         aria-modal="true"
@@ -79,7 +90,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
                 在三维场景中按住任一接线柱并拖动，松开在另一个端口上即可完成连接。接线期间其他可连接端口会显示绿色提示环。
               </li>
               <li>
-                点击已连接的导线可以选中它，在属性面板中拔除。每个接线柱最多堆叠三根教学导线，重复连接会被拒绝。
+                点击已连接的导线可以选中它，在属性面板中拔除。导线交叉不会相连；每个接线柱最多堆叠三根导线，重复连接会被拒绝。
               </li>
               <li>
                 电流表串联接入支路，电压表并联在被测元件两端。仪表读数由实际端口的节点电压与支路电流计算，不依赖器材摆放位置。
@@ -98,11 +109,11 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <div className="help-note-grid">
               <div>
                 <strong>实时、事件驱动</strong>
-                <p>只有接线、参数或开关状态变化时才重新求解。每一帧只负责相机、阻尼动画和场景绘制。</p>
+                <p>稳态只在接线或参数改变时求解。暂态积分 2 ms、采样 20 ms；后台冻结。相机和机械动画停止后不再连续绘制。</p>
               </div>
               <div>
                 <strong>模型边界清晰</strong>
-                <p>直流线性网络使用节点分析；电源带 0.2 Ω 内部电阻；LED 为分段线性模型；RC 暂态使用后向欧拉方法。</p>
+                <p>课堂实验包含直流网络与三相阻性电路；交流表显示有效值，小灯泡采用稳态热电阻近似。各实验的具体假设可展开查看。</p>
               </div>
               <div>
                 <strong>可保存、可复现</strong>
@@ -122,11 +133,11 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <div>
               <strong>CircuitLab-3D · 大学电路虚拟实验室</strong>
               <p>
-                本平台当前覆盖直流稳态线性电路、分段线性 LED、灯泡亮度映射和 RC 暂态。
+                课堂按八项实验组织。自由搭建还保留 LED、面包板和 RC 暂态等扩展器材。
                 三维器材、桌面、光照与导线均由 Three.js 代码程序化生成。
               </p>
             </div>
-            <span className="help-version">v0.1.0</span>
+            <span className="help-version">v0.4.0</span>
           </section>
 
           <div className="help-footer-hint">

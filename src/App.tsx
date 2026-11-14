@@ -5,10 +5,17 @@ import { SidePanel } from './ui/SidePanel';
 import { ToastLayer } from './ui/ToastLayer';
 import { TopBar } from './ui/TopBar';
 import { HelpModal } from './ui/HelpModal';
+import { BenchToolbar } from './ui/BenchToolbar';
+import { InstrumentConsole } from './ui/InstrumentConsole';
+import { DataPresentation } from './ui/DataPresentation';
+import { useViewStore } from './store/viewStore';
+import { PanelLeftOpen, PanelRightOpen } from 'lucide-react';
 import { SceneCanvas } from './three/SceneCanvas';
 import { cameraBridge } from './three/cameraBridge';
 import { useLabStore } from './store/labStore';
 import { writeLocalWorkspace } from './store/persistence';
+import { SimulationClock } from './circuit/simulation/transient';
+import './ui/workspace.css';
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -24,15 +31,37 @@ function isTypingTarget(target: EventTarget | null): boolean {
 export default function App() {
   const libraryOpen = useLabStore((state) => state.libraryOpen);
   const running = useLabStore((state) => state.transient.running);
+  const sideOpen = useViewStore(s => s.sideOpen), consoleId = useViewStore(s => s.consoleId), dataScreen = useViewStore(s => s.dataScreen);
+  const components = useLabStore(s => s.components);
   const [helpOpen, setHelpOpen] = useState(false);
+  useEffect(() => { if (consoleId && !components.some(c => c.id === consoleId)) useViewStore.getState().openConsole(null); }, [components, consoleId]);
+  useEffect(() => { if (helpOpen) { useViewStore.getState().openConsole(null); useViewStore.getState().setDataScreen(false); } }, [helpOpen]);
 
-  // RC 暂态由真实时间驱动，每 50 ms 推进一个 20 ms 的求解步。
+  // Fixed electrical steps follow visible wall time; rendering and delayed timers do not alter dt.
   useEffect(() => {
     if (!running) return;
+    const clock = new SimulationClock();
+    let previous = performance.now();
+    const resetTime = () => { previous = performance.now(); };
+    document.addEventListener('visibilitychange', resetTime);
     const interval = window.setInterval(() => {
-      useLabStore.getState().tickTransient();
+      const now = performance.now();
+      const elapsed = (now - previous) / 1000;
+      previous = now;
+      if (document.hidden) return;
+      const state = useLabStore.getState();
+      const { ticks, lag } = clock.consume(elapsed, state.transient.dt);
+      if (lag > 0.5) {
+        state.pauseTransient();
+        state.pushToast('warning', '暂态计算已暂停', '浏览器计算积压超过 0.5 s，已保留状态。可切换流畅画质后继续。');
+        return;
+      }
+      for (let tick = 0; tick < ticks; tick++) useLabStore.getState().tickTransient();
     }, 50);
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', resetTime);
+    };
   }, [running]);
 
   // 事件驱动的防抖自动保存：只序列化可复现的电路状态，不保存求解缓存。
@@ -44,6 +73,7 @@ export default function App() {
         state.wires !== previous.wires ||
         state.measurements !== previous.measurements ||
         state.activeLabId !== previous.activeLabId ||
+        state.referencePortId !== previous.referencePortId ||
         state.mode !== previous.mode;
       if (!circuitChanged) return;
       if (timer !== undefined) window.clearTimeout(timer);
@@ -127,14 +157,19 @@ export default function App() {
   return (
     <div className="app">
       <TopBar onOpenHelp={() => setHelpOpen(true)} />
-      <div className={`main-grid ${libraryOpen ? 'library-open' : 'library-closed'}`}>
+      <div inert={dataScreen} className={`main-grid ${libraryOpen ? 'library-open' : 'library-closed'} ${sideOpen ? 'side-open' : 'side-closed'}`}>
         <LibraryPanel />
         <main className="scene-column">
           <SceneCanvas />
           <SceneHud />
+          <BenchToolbar />
         </main>
         <SidePanel />
+        {!libraryOpen && <button className="panel-reopen library-reopen" aria-label="展开左侧器材库" onClick={() => useLabStore.getState().setLibraryOpen(true)}><PanelLeftOpen size={18} /></button>}
+        {!sideOpen && <button className="panel-reopen side-reopen" aria-label="展开实验面板" onClick={() => useViewStore.getState().setSideOpen(true)}><PanelRightOpen size={18} /></button>}
       </div>
+      {consoleId && <InstrumentConsole />}
+      {dataScreen && <DataPresentation />}
       <ToastLayer />
       {helpOpen && <HelpModal onClose={() => setHelpOpen(false)} />}
     </div>

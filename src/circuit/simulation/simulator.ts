@@ -10,6 +10,9 @@ import type {
 import { makePortId } from '../types';
 import { solveLinearSystem } from './linalg';
 import { UnionFind, UnionFindNumbers } from './unionFind';
+import { simulateAC } from './ac';
+import { isBenchInstrument, simulateInstruments } from './instruments';
+import { lampOperatingPoint } from './lamp';
 
 const LED_SPECS: Record<string, { vf: number; rd: number; color: string; maxCurrent: number }> = {
   red: { vf: 1.82, rd: 14, color: '#ff5040', maxCurrent: 0.03 },
@@ -39,6 +42,7 @@ interface RawSolve {
 }
 
 interface StampContext {
+  bulbVoltages: Map<string, number>;
   nets: string[][];
   portNet: Map<string, number>;
   equationMap: Map<number, number>;
@@ -297,6 +301,7 @@ function buildContext(
   const A = Array.from({ length: size }, () => new Array<number>(size).fill(0));
   const b = new Array<number>(size).fill(0);
   return {
+    bulbVoltages: new Map(),
     nets,
     portNet,
     equationMap,
@@ -368,8 +373,10 @@ function stampCircuit(context: StampContext): Diagnostic[] {
           sanitizePositive(component.params.internalResistance, 0.2),
         );
         const conductance = 1 / internalResistance;
-        stampConductance(context, positive, negative, conductance);
-        stampCurrentSource(context, negative, positive, voltage / internalResistance);
+        const limit = Number(component.params.currentLimit);
+        const cc = limit > 0 && (voltage - (context.bulbVoltages.get(component.id) ?? 0)) / internalResistance > limit;
+        stampConductance(context, positive, negative, cc ? 1e-10 : conductance);
+        stampCurrentSource(context, negative, positive, cc ? limit : voltage / internalResistance);
         break;
       }
       case 'resistor': {
@@ -433,8 +440,10 @@ function stampCircuit(context: StampContext): Diagnostic[] {
         const a = net('a');
         const b = net('b');
         if (a === undefined || b === undefined) break;
-        const resistance = sanitizePositive(component.params.resistance, 120);
-        stampConductance(context, a, b, 1 / resistance);
+        const voltage = context.bulbVoltages.get(component.id) ?? 0;
+        const point = lampOperatingPoint(component, voltage);
+        stampConductance(context, a, b, point.conductance);
+        stampCurrentSource(context, a, b, point.current - point.conductance * voltage);
         break;
       }
       case 'rheostat': {
@@ -516,9 +525,27 @@ function solveRaw(
     transient,
     ledStates,
   );
-  const stampDiagnostics = stampCircuit(context);
-  const linear = solveLinearSystem(context.A, context.b, 1e-13);
-  if (!linear.solution) {
+  const lamps = snapshot.components.filter(c => c.type === 'bulb' || c.type === 'power-supply' && Number(c.params.currentLimit) > 0);
+  let stampDiagnostics: Diagnostic[] = [];
+  let linear: ReturnType<typeof solveLinearSystem> = { solution: null, singular: false, pivotMagnitude: 0 };
+  let converged = false;
+  for (let iteration = 0; iteration < 80; iteration++) {
+    context.A = Array.from({ length: context.size }, () => Array<number>(context.size).fill(0));
+    context.b = Array<number>(context.size).fill(0);
+    stampDiagnostics = stampCircuit(context);
+    linear = solveLinearSystem(context.A, context.b, 1e-13);
+    if (!linear.solution) break;
+    const values = lamps.map(lamp => {
+      const indexA = equationMap.get(portNet.get(makePortId(lamp.id, lamp.type === 'bulb' ? 'a' : 'positive'))!);
+      const indexB = equationMap.get(portNet.get(makePortId(lamp.id, lamp.type === 'bulb' ? 'b' : 'negative'))!);
+      return { id: lamp.id, voltage: (indexA === undefined ? 0 : linear.solution![indexA]) - (indexB === undefined ? 0 : linear.solution![indexB]) };
+    });
+    const error = Math.max(0, ...values.map(v => Math.abs(v.voltage - (context.bulbVoltages.get(v.id) ?? 0))));
+    if (error < 1e-9) { converged = true; break; }
+    const damping = Math.min(1, 2 / error);
+    for (const v of values) { const before = context.bulbVoltages.get(v.id) ?? 0; context.bulbVoltages.set(v.id, before + damping * (v.voltage - before)); }
+  }
+  if (!linear.solution || !converged) {
     return {
       netVoltages: new Array(nets.length).fill(0),
       portEntries: new Map(),
@@ -527,9 +554,9 @@ function solveRaw(
       diagnostics: [
         ...stampDiagnostics,
         {
-          code: 'singular-matrix',
+          code: linear.solution ? 'lamp-not-converged' : 'singular-matrix',
           level: 'error',
-          message: '电路方程无唯一解。通常由理想短路、浮动节点或相互冲突的电源连接引起。',
+          message: linear.solution ? '非线性器件迭代未收敛，读数已停止显示。' : '电路方程无唯一解，请检查浮动节点与电源连接。',
         },
       ],
       equationMap,
@@ -718,13 +745,17 @@ function measureElementResults(
           sanitizePositive(component.params.internalResistance, 0.2),
         );
         const outputVoltage = enabled ? port('positive') - port('negative') : 0;
-        const outputCurrent = enabled ? setVoltage / internalResistance - outputVoltage / internalResistance : 0;
+        const limit = Number(component.params.currentLimit);
+        const cvCurrent = (setVoltage - outputVoltage) / internalResistance;
+        const cc = limit > 0 && cvCurrent > limit;
+        const outputCurrent = enabled ? cc ? limit - outputVoltage * 1e-10 : cvCurrent : 0;
         element.voltage = outputVoltage;
         element.current = outputCurrent;
         element.power = outputVoltage * outputCurrent;
         element.reading = outputCurrent;
         element.readingUnit = 'A';
         element.flags = {
+          regulation: !enabled ? 'OFF' : cc ? 'CC' : 'CV',
           enabled,
           setVoltage,
           outputVoltage,
@@ -807,7 +838,7 @@ function measureElementResults(
         element.voltage = voltage;
         element.current = current;
         element.power = Math.abs(voltage * current);
-        element.reading = current;
+        element.reading = component.params.mode === 'ac' ? 0 : current;
         element.readingUnit = 'A';
         element.overRange = Math.abs(current) > range * 1.0001;
         if (element.overRange) {
@@ -838,7 +869,7 @@ function measureElementResults(
         element.voltage = voltage;
         element.current = voltage / internalResistance;
         element.power = Math.abs(voltage * element.current);
-        element.reading = voltage;
+        element.reading = component.params.mode === 'ac' ? 0 : voltage;
         element.readingUnit = 'V';
         element.overRange = Math.abs(voltage) > range * 1.0001;
         if (element.overRange) {
@@ -853,15 +884,16 @@ function measureElementResults(
       }
       case 'bulb': {
         const voltage = port('a') - port('b');
-        const resistance = sanitizePositive(component.params.resistance, 120);
-        const power = (voltage * voltage) / resistance;
+        const point = lampOperatingPoint(component, voltage);
+        const power = voltage * point.current;
         const ratedPower = sanitizePositive(component.params.ratedPower, 0.3);
         element.voltage = voltage;
-        element.current = voltage / resistance;
+        element.current = point.current;
         element.power = power;
         element.brightness = clamp(power / ratedPower, 0, 1.5);
         element.reading = power;
         element.readingUnit = 'W';
+        element.flags = { operatingResistance: point.resistance, ratedVoltage: point.ratedVoltage, model: 'steady-thermal' };
         break;
       }
       case 'rheostat': {
@@ -871,13 +903,17 @@ function measureElementResults(
         const segmentB = Math.max(MIN_RESISTANCE, maxResistance * (1 - position));
         const voltageAW = port('a') - port('w');
         const currentAW = voltageAW / segmentA;
+        const voltageBW = port('b') - port('w');
+        const currentBW = voltageBW / segmentB;
         element.voltage = voltageAW;
         element.current = currentAW;
-        element.power = Math.abs(voltageAW * currentAW);
+        element.power = voltageAW * currentAW + voltageBW * currentBW;
         element.flags = {
           segmentA,
           segmentB,
           position,
+          currentAW,
+          currentBW,
         };
         break;
       }
@@ -894,7 +930,8 @@ function measureElementResults(
             0,
           );
           element.current = conductance * (voltage - previous);
-          element.power = Math.abs(voltage * element.current);
+          // Passive sign convention: a discharging capacitor delivers power (negative p).
+          element.power = voltage * element.current;
           capacitorVoltages[component.id] = voltage;
           const rating = sanitizePositive(component.params.voltageRating, 25);
           if (Math.abs(voltage) > rating) {
@@ -911,6 +948,10 @@ function measureElementResults(
         }
         element.reading = voltage;
         element.readingUnit = 'V';
+        if (voltage < -0.1) {
+          addDiagnostic({ code: 'capacitor-reverse-polarity', level: 'warning',
+            message: `${component.name} 正极相对负极为 ${voltage.toFixed(2)} V，极性电容反接。`, componentIds: [component.id] });
+        }
         break;
       }
       case 'led': {
@@ -931,6 +972,7 @@ function measureElementResults(
           model: 'piecewise-linear',
           forwardVoltage: spec.vf,
           dynamicResistance: spec.rd,
+          maxCurrent: spec.maxCurrent,
           color: spec.color,
         };
         if (current > spec.maxCurrent) {
@@ -990,8 +1032,16 @@ export function simulateCircuit(
   snapshot: CircuitSnapshot,
   options: SimulationOptions = {},
 ): SimulationResult {
+  if (snapshot.components.some(isBenchInstrument)) return simulateInstruments(snapshot, options, simulateCircuit);
   const started = typeof performance !== 'undefined' ? performance.now() : Date.now();
   const { nets, portNet, diagnostics: netDiagnostics } = buildElectricalNets(snapshot);
+  const hasAC = snapshot.components.some(c => c.type === 'three-phase-source');
+  const hasDC = snapshot.components.some(c => c.type === 'power-supply');
+  const activeAC = snapshot.components.some(c => c.type === 'three-phase-source' && c.params.enabled);
+  if (activeAC && options.transient) return { domain: 'ac', status: 'error', solved: false, nodeVoltages: {}, elements: makeZeroElements(snapshot.components), diagnostics: [{ code: 'ac-transient-unsupported', level: 'error', message: '三相相量稳态与电容时域暂态不能混合运行。' }] };
+  if (hasAC && (activeAC || (!hasDC && !options.transient))) {
+    return simulateAC(snapshot, { nets, portNet, diagnostics: netDiagnostics });
+  }
   if (snapshot.components.length === 0) {
     return {
       status: 'incomplete',
@@ -1090,9 +1140,11 @@ export function simulateCircuit(
   );
 
   return {
-    status: hasNumericalError ? 'error' : enabledSourceCount === 0 ? 'incomplete' : 'ok',
+    domain: 'dc',
+    status: allDiagnostics.some(d => d.level === 'error') ? 'error' : enabledSourceCount === 0 ? 'incomplete' : 'ok',
     solved: !hasNumericalError,
     nodeVoltages,
+    portVoltages: Object.fromEntries([...portNet].map(([port, net]) => [port, ledResult.raw.netVoltages[net] ?? 0])),
     elements: measured.elements,
     diagnostics: allDiagnostics,
     capacitorVoltages: measured.capacitorVoltages,
@@ -1108,7 +1160,7 @@ export const MODELS = {
   ammeter: '0.1 Ω 采样电阻',
   voltmeter: '10 MΩ 输入电阻',
   led: '分段线性 LED（Vf + 14 Ω）',
-  bulb: '线性冷态电阻 + 功率亮度映射',
+  bulb: '标定到额定点的稳态钨丝热电阻经验模型',
   capacitor: '直流开路 / 后向欧拉暂态',
   rheostat: '三端线性电位器',
   breadboard: '孔位内部理想导体连通',

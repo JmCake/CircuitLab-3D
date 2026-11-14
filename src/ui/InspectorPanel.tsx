@@ -3,10 +3,8 @@ import {
   Cable,
   CircleDot,
   Crosshair,
-  Info,
   RotateCcw,
   RotateCw,
-  SlidersHorizontal,
   Trash2,
   Unplug,
 } from 'lucide-react';
@@ -76,7 +74,7 @@ function NumberParam({
   return (
     <div className="param-field">
       <div className="param-label-row">
-        <label htmlFor={`param-${component.id}-${definition.key}`}>{definition.label}</label>
+        <label htmlFor={`param-${component.id}-${definition.key}`} title={definition.description}>{definition.label}</label>
         <span className="param-limit">
           {definition.min} – {definition.max} {definition.unit}
         </span>
@@ -115,7 +113,6 @@ function NumberParam({
           ))}
         </div>
       )}
-      {definition.description && <p className="param-help">{definition.description}</p>}
     </div>
   );
 }
@@ -138,7 +135,7 @@ function SliderParam({
   return (
     <div className="param-field">
       <div className="param-label-row">
-        <label htmlFor={`param-${component.id}-${definition.key}`}>{definition.label}</label>
+        <label htmlFor={`param-${component.id}-${definition.key}`} title={definition.description}>{definition.label}</label>
         <strong className="param-value">
           {display}
           <em>{definition.unit}</em>
@@ -179,7 +176,6 @@ function SliderParam({
           ))}
         </div>
       )}
-      {definition.description && <p className="param-help">{definition.description}</p>}
     </div>
   );
 }
@@ -195,7 +191,7 @@ function SelectParam({
   return (
     <div className="param-field">
       <div className="param-label-row">
-        <label htmlFor={`param-${component.id}-${definition.key}`}>{definition.label}</label>
+        <label htmlFor={`param-${component.id}-${definition.key}`} title={definition.description}>{definition.label}</label>
       </div>
       <select
         id={`param-${component.id}-${definition.key}`}
@@ -212,7 +208,6 @@ function SelectParam({
           </option>
         ))}
       </select>
-      {definition.description && <p className="param-help">{definition.description}</p>}
     </div>
   );
 }
@@ -229,7 +224,7 @@ function SwitchParam({
   return (
     <div className="param-field switch-field">
       <div>
-        <label>{definition.label}</label>
+        <label title={definition.description}>{definition.label}</label>
         <span className={`switch-state ${on ? 'on' : ''}`}>
           {on ? definition.onLabel ?? '开' : definition.offLabel ?? '关'}
         </span>
@@ -242,12 +237,11 @@ function SwitchParam({
       >
         <span />
       </button>
-      {definition.description && <p className="param-help">{definition.description}</p>}
     </div>
   );
 }
 
-function ParamControl({
+export function ParamControl({
   component,
   definition,
 }: {
@@ -274,7 +268,9 @@ function LiveValues({ component }: { component: LabComponent }) {
   if (!result.solved || !element) {
     return <div className="empty-inline">当前电路无有效读数</div>;
   }
-  const readingLabel =
+  if (component.type === 'multimeter') return <div className="live-values"><div className="value-tile"><span>仪表读数</span><strong>{element.flags?.invalidReading ? '—' : element.overRange || element.flags?.openCircuit ? 'OL' : element.readingUnit === 'Ω' ? formatResistance(element.reading) : element.readingUnit === 'A' ? formatCurrent(element.reading) : formatVoltage(element.reading)}</strong></div><div className="value-tile"><span>功能</span><strong>{String(component.params.mode).toUpperCase()}</strong></div></div>;
+  if (component.type === 'programmable-supply') return <div className="live-values">{[1, 2].map(ch => <div className="value-tile" key={ch}><span>CH{ch} · {String(element.flags?.[`mode${ch}`])}</span><strong>{formatVoltage(ch === 1 ? element.voltage : Number(element.flags?.voltage2))}</strong><strong>{formatCurrent(ch === 1 ? element.current : Number(element.flags?.current2))}</strong></div>)}</div>;
+  const readingLabel = component.type === 'three-phase-source' ? '相电压 U_AN' :
     component.type === 'ammeter'
       ? '仪表读数'
       : component.type === 'voltmeter'
@@ -289,11 +285,11 @@ function LiveValues({ component }: { component: LabComponent }) {
         <strong>{formatVoltage(element.voltage)}</strong>
       </div>
       <div className="value-tile">
-        <span>{component.type === 'power-supply' ? '输出电流' : '支路电流'}</span>
+        <span>{component.type === 'three-phase-source' ? '线电流 I_A' : component.type === 'power-supply' ? '输出电流' : '支路电流'}</span>
         <strong>{formatCurrent(element.current)}</strong>
       </div>
       <div className="value-tile">
-        <span>{component.type === 'bulb' || component.type === 'led' ? '耗散功率' : '功率'}</span>
+        <span>{component.type === 'three-phase-source' ? '三相有功功率' : component.type === 'bulb' || component.type === 'led' ? '耗散功率' : '功率'}</span>
         <strong>{formatPower(element.power)}</strong>
       </div>
       {component.type === 'resistor' && (
@@ -356,8 +352,7 @@ function WireInspector({ wire }: { wire: Wire }) {
             <Cable size={18} />
           </span>
           <div>
-            <span className="panel-eyebrow">WIRE {wire.id}</span>
-            <h2>三维导线</h2>
+            <h2>导线</h2>
           </div>
         </div>
       </div>
@@ -389,12 +384,6 @@ function WireInspector({ wire }: { wire: Wire }) {
           </div>
         </div>
       </div>
-      <div className="info-note">
-        <Info size={15} />
-        <p>
-          导线电气连接由两个唯一端口 ID 建立。即使三维空间中与其他导线交叉，也不会隐式合并节点。
-        </p>
-      </div>
       <button type="button" className="button button-danger full" onClick={() => removeWire(wire.id)}>
         <Unplug size={15} />
         拔除这根导线
@@ -410,32 +399,7 @@ function EmptyInspector() {
         <span className="empty-ring" />
         <Crosshair size={28} />
       </div>
-      <h2>选择一个实验器材</h2>
-      <p>
-        点击三维实验台上的仪器查看参数、接线端口和实时读数。选中仪器后可用右下角按钮旋转视角聚焦。
-      </p>
-      <div className="empty-tips">
-        <div>
-          <span className="tip-key">拖动</span>
-          器材可沿桌面移动
-        </div>
-        <div>
-          <span className="tip-key">接线柱</span>
-          点击并拖到另一端口完成接线
-        </div>
-        <div>
-          <span className="tip-key">R</span>
-          旋转选中器材 15°
-        </div>
-        <div>
-          <span className="tip-key">F</span>
-          聚焦选中器材
-        </div>
-      </div>
-      <div className="empty-note">
-        <SlidersHorizontal size={15} />
-        参数、端口 ID、仪表读数均来自统一实验状态。
-      </div>
+      <h2>选择器材</h2>
     </div>
   );
 }
@@ -448,9 +412,6 @@ export function InspectorPanel() {
   const removeComponent = useLabStore((state) => state.removeComponent);
   const rotateComponent = useLabStore((state) => state.rotateComponent);
   const removeWire = useLabStore((state) => state.removeWire);
-  const element = useLabStore((state) =>
-    state.selectedId ? state.result.elements[state.selectedId] : undefined,
-  );
   const wire = useMemo(
     () => (selectedWireId ? wires.find((item) => item.id === selectedWireId) : undefined),
     [selectedWireId, wires],
@@ -480,7 +441,6 @@ export function InspectorPanel() {
         )
       : definition.ports;
   const internalGroups = getInternalPortGroups(component).length;
-  const angleDegrees = Math.round(((component.rotationY * 180) / Math.PI + 360) % 360);
 
   return (
     <div className="panel-stack">
@@ -490,14 +450,10 @@ export function InspectorPanel() {
             <CircleDot size={18} />
           </span>
           <div>
-            <span className="panel-eyebrow">{definition.name.toUpperCase()}</span>
-            <h2>{component.name}</h2>
+            <h2 title={definition.description}>{component.name}</h2>
           </div>
         </div>
-        <span className="inspector-id">{component.id}</span>
       </div>
-
-      <p className="inspector-description">{definition.description}</p>
 
       <div className="inspector-actions">
         <button
@@ -535,11 +491,6 @@ export function InspectorPanel() {
         >
           <Trash2 size={15} />
         </button>
-      </div>
-      <div className="component-meta">
-        <span>桌面坐标 X {component.position[0].toFixed(2)} m</span>
-        <span>Z {component.position[1].toFixed(2)} m</span>
-        <span>朝向 {angleDegrees}°</span>
       </div>
 
       <section className="panel-section">
@@ -590,7 +541,7 @@ export function InspectorPanel() {
                 />
                 <div className="port-copy">
                   <strong>{port.label}</strong>
-                  <span>{port.key} · {portWires.length} 根导线</span>
+                  {portWires.length > 0 && <span>{portWires.length} 根导线</span>}
                 </div>
                 {port.role === 'positive' || port.role === 'anode' ? (
                   <span className="port-polarity positive">POS</span>
@@ -634,15 +585,10 @@ export function InspectorPanel() {
       </section>
 
       {definition.modelNote && (
-        <div className="model-note">
-          <strong>电学模型</strong>
+        <details className="model-note collapsible">
+          <summary>电学模型</summary>
           <p>{definition.modelNote}</p>
-          {element && (
-            <span className="mono-note">
-              状态：{element.current.toFixed(4)} A / {element.voltage.toFixed(3)} V
-            </span>
-          )}
-        </div>
+        </details>
       )}
     </div>
   );

@@ -4,10 +4,12 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { useLabStore } from '../store/labStore';
+import { getDefinition } from '../circuit';
 import { cameraBridge } from './cameraBridge';
+import { useViewStore } from '../store/viewStore';
 
-const DEFAULT_POSITION = new THREE.Vector3(1.78, 1.62, 2.55);
-const DEFAULT_TARGET = new THREE.Vector3(0, 0.075, -0.02);
+const DEFAULT_POSITION = new THREE.Vector3(0.64, 0.78, 1.62);
+const DEFAULT_TARGET = new THREE.Vector3(0, 0.12, -0.02);
 
 interface CameraTween {
   active: boolean;
@@ -23,7 +25,13 @@ export function CameraRig() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
+  const invalidate = useThree((state) => state.invalidate);
+  const aspect = useThree((state) => state.size.width / state.size.height);
+  const size = useThree(s => s.size);
+  const libraryOpen = useLabStore(s => s.libraryOpen), sideOpen = useViewStore(s => s.sideOpen);
+  const layoutKey = useLabStore(state => state.components.map(c => c.id).join('|'));
   const interactionMode = useLabStore((state) => state.interactionMode);
+  const panMode = useViewStore(s => s.panMode);
   const tween = useRef<CameraTween>({
     active: false,
     elapsed: 0,
@@ -46,19 +54,61 @@ export function CameraRig() {
       fromTarget: controls.target.clone(),
       toTarget: target.clone(),
     };
+    invalidate();
   };
 
   useEffect(() => {
-    camera.position.copy(DEFAULT_POSITION);
-    camera.lookAt(DEFAULT_TARGET);
-    if (controlsRef.current) {
-      controlsRef.current.target.copy(DEFAULT_TARGET);
-      controlsRef.current.update();
-    }
+    if (!(camera instanceof THREE.PerspectiveCamera)) return;
+    const left = size.width > 760 && libraryOpen ? size.width > 1100 ? 262 : 237 : 0;
+    const right = size.width > 760 && sideOpen ? size.width > 1100 ? 402 : 367 : 0;
+    camera.setViewOffset(size.width, size.height, (right - left) / 2, 0, size.width, size.height);
+    camera.updateProjectionMatrix(); invalidate();
+  }, [camera, size, libraryOpen, sideOpen, invalidate]);
+
+  useEffect(() => {
+    const frameBench = (preset: 'perspective' | 'top' | 'front') => {
+      const components = useLabStore.getState().components;
+      const corners: THREE.Vector3[] = [];
+      for (const component of components) {
+        const d = getDefinition(component.type);
+        const rotation = new THREE.Matrix4().makeRotationY(component.rotationY);
+        for (const x of [-d.footprint[0] / 2 - 0.02, d.footprint[0] / 2 + 0.02]) {
+          for (const z of [-d.footprint[1] / 2 - 0.03, d.footprint[1] / 2 + 0.09]) {
+            for (const y of [0, d.height + 0.015]) {
+              corners.push(new THREE.Vector3(x, y, z).applyMatrix4(rotation).add(new THREE.Vector3(component.position[0], 0, component.position[1])));
+            }
+          }
+        }
+      }
+      if (corners.length === 0) { startTween(DEFAULT_TARGET, new THREE.Vector3(1.4, 1.4, 2.4)); return; }
+      const bounds = new THREE.Box3().setFromPoints(corners);
+      const target = bounds.getCenter(new THREE.Vector3());
+      const offset = preset === 'top' ? new THREE.Vector3(0, 1, 0.01)
+        : preset === 'front' ? new THREE.Vector3(0, 0.28, 1) : DEFAULT_POSITION.clone().sub(DEFAULT_TARGET);
+      const backward = offset.normalize();
+      const forward = backward.clone().negate();
+      const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize();
+      const up = new THREE.Vector3().crossVectors(right, forward).normalize();
+      const tanV = Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov) / 2);
+      const ui = useViewStore.getState();
+      const margin = size.width > 760 ? (useLabStore.getState().libraryOpen ? size.width > 1100 ? 262 : 237 : 30) + (ui.sideOpen ? size.width > 1100 ? 402 : 367 : 30) : 30;
+      const usableAspect = Math.max(0.25, (size.width - margin) / size.height);
+      let distance = 1.6;
+      for (const corner of corners) {
+        const relative = corner.clone().sub(target);
+        distance = Math.max(distance, Math.abs(relative.dot(right)) / (tanV * usableAspect * 0.85) - relative.dot(forward),
+          Math.abs(relative.dot(up)) / (tanV * 0.76) - relative.dot(forward));
+      }
+      startTween(target, target.clone().addScaledVector(backward, distance));
+    };
 
     cameraBridge.reset = () => {
-      startTween(DEFAULT_TARGET, DEFAULT_POSITION);
+      frameBench('perspective');
     };
+    cameraBridge.view = (preset) => {
+      frameBench(preset);
+    };
+    frameBench('perspective');
     cameraBridge.focus = (position) => {
       const controls = controlsRef.current;
       if (!controls) return;
@@ -69,6 +119,14 @@ export function CameraRig() {
       const nextPosition = target.clone().add(direction.multiplyScalar(distance));
       startTween(target, nextPosition, 0.5);
     };
+    cameraBridge.pan = (horizontal, vertical) => {
+      const controls = controlsRef.current;
+      if (!controls) return;
+      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+      const offset = right.multiplyScalar(horizontal).add(new THREE.Vector3(0, vertical, 0));
+      startTween(controls.target.clone().add(offset), camera.position.clone().add(offset), 0.18);
+    };
+    cameraBridge.getPose = () => controlsRef.current ? { position: camera.position.toArray(), target: controlsRef.current.target.toArray() } : null;
     cameraBridge.screenToTable = (clientX, clientY) => {
       const rect = gl.domElement.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return null;
@@ -94,6 +152,7 @@ export function CameraRig() {
       ];
     };
     cameraBridge.getRenderStats = () => ({
+      frame: gl.info.render.frame,
       calls: gl.info.render.calls,
       triangles: gl.info.render.triangles,
       lines: gl.info.render.lines,
@@ -105,12 +164,15 @@ export function CameraRig() {
 
     return () => {
       cameraBridge.reset = () => undefined;
+      cameraBridge.pan = () => undefined;
+      cameraBridge.getPose = () => null;
+      cameraBridge.view = () => undefined;
       cameraBridge.focus = () => undefined;
       cameraBridge.screenToTable = () => null;
       cameraBridge.worldToScreen = () => null;
       cameraBridge.getRenderStats = () => null;
     };
-  }, [camera, gl]);
+  }, [camera, gl, aspect, layoutKey]);
 
   useFrame((_, delta) => {
     const controls = controlsRef.current;
@@ -123,19 +185,21 @@ export function CameraRig() {
       controls.target.lerpVectors(tween.current.fromTarget, tween.current.toTarget, eased);
       controls.update();
       if (t >= 1) tween.current.active = false;
+      else invalidate();
     }
     // 限制平移目标，使实验台始终位于画面中心区域，且不会进入桌面内部。
     const beforeX = controls.target.x;
     const beforeY = controls.target.y;
     const beforeZ = controls.target.z;
-    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -0.72, 0.72);
-    controls.target.y = THREE.MathUtils.clamp(controls.target.y, 0.02, 0.3);
-    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -0.34, 0.34);
+    controls.target.x = THREE.MathUtils.clamp(controls.target.x, -1.1, 1.1);
+    controls.target.y = THREE.MathUtils.clamp(controls.target.y, 0.02, 0.7);
+    controls.target.z = THREE.MathUtils.clamp(controls.target.z, -0.55, 0.55);
     if (
       beforeX !== controls.target.x ||
       beforeY !== controls.target.y ||
       beforeZ !== controls.target.z
     ) {
+      camera.position.add(new THREE.Vector3(controls.target.x - beforeX, controls.target.y - beforeY, controls.target.z - beforeZ));
       controls.update();
     }
   });
@@ -152,14 +216,14 @@ export function CameraRig() {
       panSpeed={0.55}
       zoomSpeed={0.75}
       minDistance={1.15}
-      maxDistance={3.8}
-      minPolarAngle={0.34}
+      maxDistance={5.5}
+      minPolarAngle={0.01}
       maxPolarAngle={1.34}
       onStart={() => {
         tween.current.active = false;
       }}
       mouseButtons={{
-        LEFT: THREE.MOUSE.ROTATE,
+        LEFT: panMode ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
         RIGHT: THREE.MOUSE.PAN,
       }}

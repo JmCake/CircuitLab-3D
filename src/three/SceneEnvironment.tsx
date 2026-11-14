@@ -1,8 +1,11 @@
 import { useEffect, useMemo } from 'react';
-import { ContactShadows, Environment, Lightformer, RoundedBox } from '@react-three/drei';
+import { ContactShadows, Environment, Lightformer, RoundedBox, SoftShadows } from '@react-three/drei';
 import * as THREE from 'three';
 import { LabelPlane, useDrawTexture } from './graphics';
 import { MATERIALS } from './materials';
+import { StaticGeometryBatch } from './StaticGeometryBatch';
+import { useViewStore } from '../store/viewStore';
+import { BENCH } from '../circuit';
 
 function seededRandom(seed: number): () => number {
   let value = seed >>> 0;
@@ -166,7 +169,7 @@ function SoftFloorShadow() {
 
 function Bench() {
   return (
-    <group>
+    <group scale={[BENCH.width / 2.24, 1, BENCH.depth / 1.16]}>
       <TableTop />
       <mesh position={[0, -0.056, 0]} castShadow material={MATERIALS.shellCharcoal}>
         <boxGeometry args={[2.255, 0.018, 1.175]} />
@@ -289,8 +292,9 @@ function LabWall() {
       <mesh position={[0, 0.8, 4]} receiveShadow material={MATERIALS.shellWarm}>
         <boxGeometry args={[8, 3.2, 0.1]} />
       </mesh>
-      <mesh position={[0, 2.4, 0]} receiveShadow material={MATERIALS.shellLight}>
-        <boxGeometry args={[8, 0.08, 8]} />
+      <mesh position={[0, 2.4, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow material={MATERIALS.shellLight}>
+        {/* One-sided interior ceiling: the editor's overhead view sees into the room. */}
+        <planeGeometry args={[8, 8]} />
       </mesh>
 
       {/* 墙裙、踢脚线与板缝 */}
@@ -533,11 +537,11 @@ function WhiteboardTexture() {
 function RoomLighting() {
   return (
     <>
-      <ambientLight intensity={0.12} color="#fffaf0" />
-      <hemisphereLight args={['#fff5e5', '#4b504e', 0.52]} />
+      <ambientLight intensity={0.2} color="#fffaf0" />
+      <hemisphereLight args={['#f6f7f0', '#5a6061', 0.8]} />
       <directionalLight
         position={[2.4, 3.6, 2.6]}
-        intensity={2.55}
+        intensity={2.4}
         color="#fff2dd"
         castShadow
         shadow-mapSize-width={2048}
@@ -584,15 +588,19 @@ function RoomLighting() {
 }
 
 export function SceneEnvironment() {
+  const quality = useViewStore(s => s.quality);
   return (
     <>
+      {quality === 'fine' && <SoftShadows size={4} samples={24} focus={0.4} />}
       <color attach="background" args={['#dcd8d0']} />
       <fog attach="fog" args={['#ddd9d1', 6.2, 13]} />
       <RoomLighting />
-      <Floor />
-      <SoftFloorShadow />
-      <LabWall />
-      <Bench />
+      <StaticGeometryBatch>
+        <Floor />
+        <SoftFloorShadow />
+        <LabWall />
+        <Bench />
+      </StaticGeometryBatch>
       <ContactShadows
         position={[0, -0.788, 0]}
         scale={[3.2, 2.1]}
