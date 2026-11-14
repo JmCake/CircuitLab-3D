@@ -80,6 +80,8 @@ try {
   assert.deepEqual(await page.evaluate(() => window.__circuitlab.store.getState().components.find(c => c.id === 'scope').position), scopeClick.position);
   assert.equal(await page.getByRole('dialog').count(), 0);
   evidence.interactions.push({ action: 'actual-scope-click-with-inspector-collapsed-keeps-selection-without-moving-device' });
+  await page.mouse.click(800, 180);
+  assert.equal(await page.evaluate(() => window.__circuitlab.store.getState().selectedId), null, '下一次点击空白区域仍应取消选择');
   preview = await inspectorFor('scope'); assert((await preview.innerText()).includes('-120.00°')); assert((await preview.innerText()).includes('24.000 V RMS'));
   await preview.getByRole('button', { name: '自动垂直档位', exact: true }).click();
   assert.deepEqual(await page.evaluate(() => { const p = window.__circuitlab.store.getState().components.find(c => c.id === 'scope').params; return [p.voltsDiv1, p.voltsDiv2]; }), [10, 10]);

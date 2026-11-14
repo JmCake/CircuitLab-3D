@@ -6,6 +6,7 @@ import { useLabStore } from '../store/labStore';
 import { cameraBridge } from './cameraBridge';
 import { SceneRoot } from './SceneRoot';
 import { useViewStore } from '../store/viewStore';
+import { pointerGesture } from './pointerGesture';
 
 function supportsWebGL2(): boolean {
   try {
@@ -65,6 +66,7 @@ export function SceneCanvas() {
     <div
       ref={containerRef}
       className={`scene-canvas ${dragOver ? 'is-drag-over' : ''}`}
+      onPointerDownCapture={() => { pointerGesture.hit = false; }}
       onDragOver={handleDragOver}
       onDragLeave={() => setDragOver(false)}
       onDrop={handleDrop}
@@ -86,6 +88,8 @@ export function SceneCanvas() {
           gl.shadowMap.type = THREE.PCFSoftShadowMap;
         }}
         onPointerMissed={() => {
+          // Opening an inspector can shift the view between a hit press and click.
+          if (pointerGesture.hit) return;
           useLabStore.getState().selectComponent(null);
           useLabStore.getState().selectWire(null);
         }}

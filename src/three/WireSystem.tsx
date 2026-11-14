@@ -8,6 +8,7 @@ import { MATERIALS } from './materials';
 import { createWireRoutingScene, getWireAttachment, routeWire, routeWires, WIRE_RADIUS, type RoutedWire, type WireAttachment, type WireRoutingScene } from './wireRouting';
 import { useViewStore } from '../store/viewStore';
 import { wireInspection } from './wireInspection';
+import { pointerGesture } from './pointerGesture';
 
 type Attachment = WireAttachment;
 const LOCAL_FORWARD = new THREE.Vector3(0, 0, 1);
@@ -107,6 +108,7 @@ function WireMesh({
   const select = (event: ThreeEvent<PointerEvent>) => {
     if (event.button !== 0) return;
     event.stopPropagation();
+    pointerGesture.hit = true;
     selectWire(wire.id);
   };
 

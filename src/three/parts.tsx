@@ -10,6 +10,7 @@ import { LabelPlane, useDrawTexture } from './graphics';
 import { MATERIALS, SHARED_GEOMETRY } from './materials';
 import { registerPortTarget, unregisterPortTarget } from './portRegistry';
 import { useAnimationWake } from './useAnimationWake';
+import { pointerGesture } from './pointerGesture';
 
 const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
@@ -81,6 +82,7 @@ export function InstrumentFrame({ component, selected, children }: InstrumentFra
   const handlePointerDown = (event: ThreeEvent<PointerEvent>) => {
     if (event.button !== 0) return;
     event.stopPropagation();
+    pointerGesture.hit = true;
     const hit = new THREE.Vector3();
     if (event.ray.intersectPlane(DRAG_PLANE, hit)) {
       beginMove(component.id, [hit.x, hit.z]);
