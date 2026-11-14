@@ -268,7 +268,7 @@ function LiveValues({ component }: { component: LabComponent }) {
   if (!result.solved || !element) {
     return <div className="empty-inline">当前电路无有效读数</div>;
   }
-  const readingLabel =
+  const readingLabel = component.type === 'three-phase-source' ? '相电压 U_AN' :
     component.type === 'ammeter'
       ? '仪表读数'
       : component.type === 'voltmeter'
@@ -283,11 +283,11 @@ function LiveValues({ component }: { component: LabComponent }) {
         <strong>{formatVoltage(element.voltage)}</strong>
       </div>
       <div className="value-tile">
-        <span>{component.type === 'power-supply' ? '输出电流' : '支路电流'}</span>
+        <span>{component.type === 'three-phase-source' ? '线电流 I_A' : component.type === 'power-supply' ? '输出电流' : '支路电流'}</span>
         <strong>{formatCurrent(element.current)}</strong>
       </div>
       <div className="value-tile">
-        <span>{component.type === 'bulb' || component.type === 'led' ? '耗散功率' : '功率'}</span>
+        <span>{component.type === 'three-phase-source' ? '三相有功功率' : component.type === 'bulb' || component.type === 'led' ? '耗散功率' : '功率'}</span>
         <strong>{formatPower(element.power)}</strong>
       </div>
       {component.type === 'resistor' && (

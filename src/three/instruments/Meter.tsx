@@ -30,6 +30,7 @@ export function Meter({ component, element }: InstrumentModelProps) {
     ? element.reading
     : null;
   const warning = solved && Boolean(element?.overRange);
+  const ac = component.params.mode === 'ac';
 
   const cycleRange = () => {
     if (options.length === 0) return;
@@ -79,7 +80,7 @@ export function Meter({ component, element }: InstrumentModelProps) {
       </mesh>
 
       <LabelPlane
-        text={kind === 'ammeter' ? 'DIGITAL DC AMMETER' : 'DIGITAL DC VOLTMETER'}
+        text={`DIGITAL ${ac ? 'AC' : 'DC'} ${kind === 'ammeter' ? 'AMMETER' : 'VOLTMETER'}`}
         width={0.162}
         height={0.008}
         position={[0, 0.157, 0.0895]}
@@ -112,7 +113,7 @@ export function Meter({ component, element }: InstrumentModelProps) {
       <DigitalDisplay
         value={reading}
         unit={kind === 'ammeter' ? 'A' : 'V'}
-        label={`${kind === 'ammeter' ? 'DC CURRENT' : 'DC VOLTAGE'} · ${formatRange(currentRange, kind)}`}
+        label={`${ac ? 'AC RMS' : 'DC'} · ${formatRange(currentRange, kind)}`}
         width={0.149}
         height={0.044}
         position={[0, 0.122, 0.096]}
@@ -121,6 +122,8 @@ export function Meter({ component, element }: InstrumentModelProps) {
       />
 
       {/* 量程选择按钮 */}
+      <PushButton position={[-0.087, 0.074, 0.09]} label={ac ? 'AC' : 'DC'} size={0.0105} color="#4e5b5d"
+        onClick={() => setParam(component.id, 'mode', ac ? 'dc' : 'ac')} />
       <PushButton
         position={[0.087, 0.074, 0.09]}
         label="RANGE"

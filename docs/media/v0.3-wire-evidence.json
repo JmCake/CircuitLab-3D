@@ -1,0 +1,105 @@
+{
+  "labs": [
+    {
+      "id": "ohms-law",
+      "wires": 6,
+      "collisions": [],
+      "bodies": 323
+    },
+    {
+      "id": "series",
+      "wires": 7,
+      "collisions": [],
+      "bodies": 372
+    },
+    {
+      "id": "parallel",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 372
+    },
+    {
+      "id": "kirchhoff",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 372
+    },
+    {
+      "id": "led",
+      "wires": 7,
+      "collisions": [],
+      "bodies": 367
+    },
+    {
+      "id": "rc",
+      "wires": 7,
+      "collisions": [],
+      "bodies": 372
+    },
+    {
+      "id": "thevenin",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 413
+    },
+    {
+      "id": "superposition",
+      "wires": 9,
+      "collisions": [],
+      "bodies": 509
+    },
+    {
+      "id": "max-power",
+      "wires": 8,
+      "collisions": [],
+      "bodies": 413
+    },
+    {
+      "id": "iv-characteristics",
+      "wires": 6,
+      "collisions": [],
+      "bodies": 323
+    },
+    {
+      "id": "potentials",
+      "wires": 6,
+      "collisions": [],
+      "bodies": 308
+    },
+    {
+      "id": "three-phase-star",
+      "wires": 10,
+      "collisions": [],
+      "bodies": 535
+    },
+    {
+      "id": "three-phase-delta",
+      "wires": 9,
+      "collisions": [],
+      "bodies": 486
+    }
+  ],
+  "interactions": [
+    {
+      "action": "mouse-drag-unconnected-box",
+      "before": [
+        0,
+        0.18
+      ],
+      "after": [
+        -0.16623234497647177,
+        0.26311625060185784
+      ],
+      "collisions": []
+    },
+    {
+      "action": "keyboard-rotate-box",
+      "collisions": []
+    },
+    {
+      "action": "blocked-socket-warning-and-recovery",
+      "preservedWires": 6
+    }
+  ],
+  "errors": []
+}

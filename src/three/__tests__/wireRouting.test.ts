@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { createDefaultParams, getDefinition, type LabComponent } from '../../circuit';
-import { buildLabCircuit, LABS } from '../../experiments/labs';
+import { buildLabCircuit, LABS, COURSE_LABS } from '../../experiments/labs';
 import { createWireRoutingScene, getWireAttachment, routeWire, WIRE_RADIUS, type RoutedWire } from '../wireRouting';
 
 const box = (id: string, x = 0, z = 0, rotationY = 0, type: LabComponent['type'] = 'resistor-box'): LabComponent => ({
@@ -12,8 +12,10 @@ const anchor = (x: number, y: number, z: number, normal: [number, number, number
 // Independently sample the rendered centreline in each instrument's local frame, allowing for tube radius.
 function verifyClear(route: RoutedWire, components: LabComponent[]) {
   const points = route.curve.getSpacedPoints(Math.ceil(route.curve.getLength() / 0.001));
+  let deskClearance = Infinity;
+  const closest = new Map<string, { clearance: number; point: number[] }>();
   for (const p of points) {
-    expect(p.y).toBeGreaterThanOrEqual(WIRE_RADIUS);
+    deskClearance = Math.min(deskClearance, p.y);
     for (const c of components) {
       const d = getDefinition(c.type);
       const dx = p.x - c.position[0];
@@ -22,11 +24,30 @@ function verifyClear(route: RoutedWire, components: LabComponent[]) {
       const z = dx * Math.sin(c.rotationY) + dz * Math.cos(c.rotationY);
       const outside = Math.max(Math.abs(x) - d.footprint[0] / 2, Math.abs(z) - d.footprint[1] / 2,
         p.y - d.height - (c.type === 'breadboard' ? 0 : 0.025), -p.y);
-      expect(outside, `${c.id} collision at ${p.toArray()}`).toBeGreaterThan(WIRE_RADIUS + 0.004);
+      if (outside < (closest.get(c.id)?.clearance ?? Infinity)) closest.set(c.id, { clearance: outside, point: p.toArray() });
     }
   }
+  expect(deskClearance).toBeGreaterThanOrEqual(WIRE_RADIUS);
+  for (const [id, nearest] of closest) expect(nearest.clearance, `${id} collision at ${nearest.point}`).toBeGreaterThan(WIRE_RADIUS + 0.004);
 }
 describe('导线三维避障与圆角安全', () => {
+  it('无遮挡的短线以连续缓弧拱起，保持插头出线切向', () => {
+    const from = anchor(-0.18, 0.04, 0, [0, 0, 1]), to = anchor(0.18, 0.04, 0, [0, 0, 1]);
+    const route = routeWire(createWireRoutingScene([]), from, to)!;
+    expect(route.mode).toBe('direct');
+    expect(Math.max(...route.curve.getSpacedPoints(100).map(p => p.y))).toBeGreaterThan(0.055);
+    expect(Math.min(...route.curve.getSpacedPoints(100).map(p => p.y))).toBeGreaterThanOrEqual(0.04);
+    expect(route.curve.getTangent(0).dot(from.normal)).toBeGreaterThan(0.999);
+    expect(route.curve.getTangent(1).dot(to.normal)).toBeLessThan(-0.999);
+    const join = route.curve.curves[0].getTangent(1).dot(route.curve.curves[1].getTangent(0));
+    expect(join).toBeGreaterThan(0.99999);
+  });
+  it('交换短线两端不改变导线形状', () => {
+    const from = anchor(-0.18, 0.04, 0, [0, 0, 1]), to = anchor(0.18, 0.07, 0.1, [0, 0, 1]);
+    const scene = createWireRoutingScene([]);
+    const forward = routeWire(scene, from, to)!, reverse = routeWire(scene, to, from)!;
+    for (let i = 0; i <= 20; i++) expect(forward.curve.getPoint(i / 20).distanceTo(reverse.curve.getPoint(1 - i / 20))).toBeLessThan(1e-6);
+  });
   it('避开机箱占位之外凸出的接线柱金属头', () => {
     const components = [box('switch-posts', 0, 0, 0, 'switch')];
     const route = routeWire(createWireRoutingScene(components), anchor(-0.6, 0.03, 0.104, [1, 0, 0]), anchor(0.6, 0.03, 0.104, [-1, 0, 0]));
@@ -88,7 +109,7 @@ describe('导线三维避障与圆角安全', () => {
     const components = [box('cover')];
     expect(routeWire(createWireRoutingScene(components), anchor(0, 0.05, 0, [0, 0, 1]), anchor(0.7, 0.06, 0, [-1, 0, 0]))).toBeNull();
   });
-  for (const lab of LABS) {
+  for (const lab of [...LABS, ...COURSE_LABS.filter(c => !LABS.some(l => l.id === c.id))]) {
     it(`${lab.index} 全部示范导线避开每件器材`, () => {
       const circuit = buildLabCircuit(lab.id, true);
       const scene = createWireRoutingScene(circuit.components);

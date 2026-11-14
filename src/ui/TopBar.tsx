@@ -9,7 +9,7 @@ import {
   Undo2,
   Waves,
 } from 'lucide-react';
-import { LABS } from '../experiments/labs';
+import { getLab } from '../experiments/labs';
 import { useLabStore } from '../store/labStore';
 
 function LogoMark() {
@@ -48,7 +48,7 @@ export function TopBar({ onOpenHelp }: { onOpenHelp: () => void }) {
   const canUndo = useLabStore((state) => state.history.past.length > 0);
   const canRedo = useLabStore((state) => state.history.future.length > 0);
   const saveLocal = useLabStore((state) => state.saveLocal);
-  const activeLab = LABS.find((lab) => lab.id === activeLabId) ?? LABS[0];
+  const activeLab = getLab(activeLabId);
 
   return (
     <header className="topbar">

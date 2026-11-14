@@ -43,7 +43,7 @@ try {
     assert.deepEqual(report.collisions, [], `${label}: actual instrument mesh collisions`);
     return report;
   }
-  for (const id of ['ohms-law', 'series', 'parallel', 'kirchhoff', 'led', 'rc', 'thevenin', 'superposition', 'max-power']) {
+  for (const id of ['ohms-law', 'series', 'parallel', 'kirchhoff', 'led', 'rc', 'thevenin', 'superposition', 'max-power', 'iv-characteristics', 'potentials', 'three-phase-star', 'three-phase-delta']) {
     await page.evaluate(id => window.__circuitlab.store.getState().loadLab(id, true), id);
     await page.waitForFunction(id => { const s = window.__circuitlab.store.getState(); const r = window.__circuitlab.wireClearance(); return r && r.wires.length === s.wires.length && r.wires.every(w => w.id.startsWith(id + '-')); }, id);
     const report = await inspect(id);

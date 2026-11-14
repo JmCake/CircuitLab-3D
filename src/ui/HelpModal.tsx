@@ -113,7 +113,7 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
               </div>
               <div>
                 <strong>模型边界清晰</strong>
-                <p>直流线性网络使用节点分析；电源带 0.2 Ω 内部电阻；LED 为分段线性模型；RC 暂态使用后向欧拉方法。</p>
+                <p>课堂实验包含直流网络与三相阻性电路；交流表显示有效值，小灯泡采用稳态热电阻近似。各实验的具体假设可展开查看。</p>
               </div>
               <div>
                 <strong>可保存、可复现</strong>
@@ -133,11 +133,11 @@ export function HelpModal({ onClose }: { onClose: () => void }) {
             <div>
               <strong>CircuitLab-3D · 大学电路虚拟实验室</strong>
               <p>
-                本平台当前覆盖直流稳态线性电路、分段线性 LED、灯泡亮度映射和 RC 暂态。
+                课堂按八项实验组织。自由搭建还保留 LED、面包板和 RC 暂态等扩展器材。
                 三维器材、桌面、光照与导线均由 Three.js 代码程序化生成。
               </p>
             </div>
-            <span className="help-version">v0.2.0</span>
+            <span className="help-version">v0.3.0</span>
           </section>
 
           <div className="help-footer-hint">

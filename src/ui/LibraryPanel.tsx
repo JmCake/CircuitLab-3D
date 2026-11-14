@@ -22,8 +22,10 @@ import {
   type ComponentType,
 } from '../circuit';
 import { useLabStore } from '../store/labStore';
+import { getLab } from '../experiments/labs';
 
 const PART_ICONS: Record<ComponentType, LucideIcon> = {
+  'three-phase-source': Activity,
   'power-supply': Zap,
   ammeter: Gauge,
   voltmeter: Activity,
@@ -40,7 +42,7 @@ const PART_ICONS: Record<ComponentType, LucideIcon> = {
 const SECTIONS: { title: string; items: ComponentType[] }[] = [
   {
     title: '电源与测量',
-    items: ['power-supply', 'ammeter', 'voltmeter'],
+    items: ['power-supply', 'three-phase-source', 'ammeter', 'voltmeter'],
   },
   {
     title: '基础元件',
@@ -60,6 +62,11 @@ export function LibraryPanel() {
   const libraryOpen = useLabStore((state) => state.libraryOpen);
   const wireColor = useLabStore((state) => state.wireColor);
   const setWireColor = useLabStore((state) => state.setWireColor);
+  const activeLabId = useLabStore(s => s.activeLabId);
+  const mode = useLabStore(s => s.mode);
+  const available = new Set(getLab(activeLabId).kit);
+  if (activeLabId === 'iv-characteristics') available.add('bulb');
+  const sections = SECTIONS.map(s => ({ ...s, items: s.items.filter(t => mode === 'free' || available.has(t)) })).filter(s => s.items.length > 0);
 
   if (!libraryOpen) return null;
 
@@ -76,7 +83,7 @@ export function LibraryPanel() {
         </div>
       </div>
       <div className="library-scroll">
-        {SECTIONS.map((section) => (
+        {sections.map((section) => (
           <section className="library-section" key={section.title}>
             <div className="library-section-heading">
               <span>{section.title}</span>

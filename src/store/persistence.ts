@@ -49,6 +49,13 @@ function isValidMeasurement(value: unknown): value is MeasurementRow {
     (row.voltage === null || isFiniteNumber(row.voltage)) &&
     (row.current === null || isFiniteNumber(row.current)) &&
     (row.resistance === null || isFiniteNumber(row.resistance))
+    && (row.observation === undefined || (
+      row.observation && row.observation.version === 1 && typeof row.observation.topology === 'string'
+      && row.observation.settings && typeof row.observation.settings === 'object' && !Array.isArray(row.observation.settings)
+      && Object.values(row.observation.settings).every(v => typeof v === 'string' || typeof v === 'boolean' || isFiniteNumber(v))
+      && row.observation.values && typeof row.observation.values === 'object' && !Array.isArray(row.observation.values)
+      && Object.values(row.observation.values).every(isFiniteNumber)
+    ))
   );
 }
 
@@ -86,6 +93,7 @@ export function validateWorkspace(value: unknown): SavedWorkspace | null {
     savedAt: typeof candidate.savedAt === 'string' ? candidate.savedAt : new Date().toISOString(),
     activeLabId: typeof candidate.activeLabId === 'string' ? candidate.activeLabId : 'ohms-law',
     mode: candidate.mode === 'free' ? 'free' : 'guided',
+    referencePortId: typeof candidate.referencePortId === 'string' && portIds.has(candidate.referencePortId) ? candidate.referencePortId : null,
     components: candidate.components,
     wires: validWires,
     measurements,
@@ -98,6 +106,7 @@ export function makeWorkspacePayload(input: {
   measurements: MeasurementRow[];
   activeLabId: string;
   mode: 'guided' | 'free';
+  referencePortId?: string | null;
 }): SavedWorkspace {
   return {
     schema: 'circuitlab-3d/workspace',
@@ -105,6 +114,7 @@ export function makeWorkspacePayload(input: {
     savedAt: new Date().toISOString(),
     activeLabId: input.activeLabId,
     mode: input.mode,
+    referencePortId: input.referencePortId ?? null,
     components: input.components,
     wires: input.wires,
     measurements: input.measurements,

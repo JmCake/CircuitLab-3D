@@ -6,7 +6,7 @@ const CLEARANCE = WIRE_RADIUS + 0.006;
 const CORNER_CLEARANCE = 0.03;
 const DESK_Y = 0.009;
 const LEAD_LENGTH = 0.035;
-const ROUNDING = 0.018;
+const ROUNDING = 0.09;
 
 export interface WireAttachment {
   pathPoint: THREE.Vector3;
@@ -170,7 +170,7 @@ function roundedPath(input: THREE.Vector3[], radius: number) {
 /** Check the rounded curves too: a Catmull-Rom shortcut can cut through an otherwise safe corner. */
 export function curveIsClear(curve: THREE.CurvePath<THREE.Vector3>, scene: WireRoutingScene): boolean {
   for (const part of curve.curves) {
-    const samples = part instanceof THREE.LineCurve3 ? [part.v1, part.v2] : part.getPoints(16);
+    const samples = part instanceof THREE.LineCurve3 ? [part.v1, part.v2] : part.getPoints(Math.min(256, Math.max(16, Math.ceil(part.getLength() / 0.004))));
     for (let i = 1; i < samples.length; i++) {
       if (samples[i].y < WIRE_RADIUS || !clearSegment(samples[i - 1], samples[i], scene.obstacles, CLEARANCE + 0.0003)) return false;
     }
@@ -178,7 +178,7 @@ export function curveIsClear(curve: THREE.CurvePath<THREE.Vector3>, scene: WireR
   return curve.curves.length > 0;
 }
 function finish(points: THREE.Vector3[], scene: WireRoutingScene, mode: RoutedWire['mode']): RoutedWire | null {
-  for (const radius of [ROUNDING, ROUNDING / 2, 0]) {
+  for (const radius of [ROUNDING, ROUNDING / 2, 0.018, 0.009, 0]) {
     const curve = roundedPath(points, radius);
     if (curveIsClear(curve, scene)) return { curve, mode, segments: Math.min(280, Math.max(48, Math.ceil(curve.getLength() / 0.006))) };
   }
@@ -189,6 +189,29 @@ function chainClear(points: THREE.Vector3[], obstacles: WireObstacle[]) {
 }
 function chainLength(points: THREE.Vector3[]) {
   return points.reduce((sum, p, i) => sum + (i ? p.distanceTo(points[i - 1]) : 0), 0);
+}
+
+/** A relaxed lead has two continuous bends, following each plug before gently arching between them.
+ * Test the whole curved span against every enclosure; the desktop planner remains the fallback.
+ */
+function relaxedSpan(scene: WireRoutingScene, start: Pick<WireAttachment, 'pathPoint' | 'normal'>, end: Pick<WireAttachment, 'pathPoint' | 'normal'>): RoutedWire | null {
+  const a = start.pathPoint, b = end.pathPoint;
+  const distance = a.distanceTo(b);
+  if (distance < 0.018) return null;
+  const tangent = b.clone().sub(a).normalize();
+  for (const scale of [1, 0.65]) {
+    const handle = Math.min(0.16, Math.max(0.028, distance * 0.28)) * scale;
+    const middle = a.clone().lerp(b, 0.5);
+    middle.y += Math.min(0.045, 0.014 + distance * 0.025) * scale;
+    // Keep the relaxed loop in front of front-facing sockets, without random lateral jitter.
+    middle.addScaledVector(start.normal.clone().add(end.normal).setY(0), handle * 0.25);
+    const middleHandle = distance * 0.22;
+    const curve = new THREE.CurvePath<THREE.Vector3>();
+    curve.add(new THREE.CubicBezierCurve3(a, a.clone().addScaledVector(start.normal, handle), middle.clone().addScaledVector(tangent, -middleHandle), middle));
+    curve.add(new THREE.CubicBezierCurve3(middle, middle.clone().addScaledVector(tangent, middleHandle), b.clone().addScaledVector(end.normal, handle), b));
+    if (curveIsClear(curve, scene)) return { curve, mode: 'direct', segments: Math.min(280, Math.max(48, Math.ceil(curve.getLength() / 0.006))) };
+  }
+  return null;
 }
 
 export function routeWire(scene: WireRoutingScene, start: Pick<WireAttachment, 'pathPoint' | 'normal'>, end: Pick<WireAttachment, 'pathPoint' | 'normal'>): RoutedWire | null {
@@ -205,6 +228,8 @@ export function routeWire(scene: WireRoutingScene, start: Pick<WireAttachment, '
   const leadB = escape(b, end.normal);
   // An instrument covering a socket makes that physical connection impossible. Never draw through it.
   if (!leadA || !leadB) return null;
+  const relaxed = relaxedSpan(scene, start, end);
+  if (relaxed) return relaxed;
   const middle = a.clone().lerp(b, 0.5);
   middle.y = DESK_Y;
   const direct = finish([a, leadA, middle, leadB, b], scene, 'direct');

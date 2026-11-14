@@ -16,7 +16,8 @@ import {
   Upload,
 } from 'lucide-react';
 import type { Diagnostic, MeasurementRow } from '../circuit';
-import { getLab } from '../experiments/labs';
+import { COURSE_LABS, getLab } from '../experiments/labs';
+import { CourseDataPanel } from './CourseDataPanel';
 import { useLabStore } from '../store/labStore';
 import { validateWorkspace } from '../store/persistence';
 import { NetworkAnalysisPanel } from './NetworkAnalysisPanel';
@@ -241,6 +242,12 @@ function TransientChart() {
 }
 
 export function DataPanel() {
+  const id = useLabStore(s => s.activeLabId);
+  const mode = useLabStore(s => s.mode);
+  return mode === 'guided' && COURSE_LABS.some(l => l.id === id) ? <CourseDataPanel /> : <LegacyDataPanel />;
+}
+
+function LegacyDataPanel() {
   const components = useLabStore((state) => state.components);
   const result = useLabStore((state) => state.result);
   const measurements = useLabStore((state) => state.measurements);

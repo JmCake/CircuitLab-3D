@@ -63,6 +63,7 @@ export default function App() {
         state.wires !== previous.wires ||
         state.measurements !== previous.measurements ||
         state.activeLabId !== previous.activeLabId ||
+        state.referencePortId !== previous.referencePortId ||
         state.mode !== previous.mode;
       if (!circuitChanged) return;
       if (timer !== undefined) window.clearTimeout(timer);

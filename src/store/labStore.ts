@@ -25,6 +25,7 @@ import {
   type Wire,
 } from '../circuit';
 import { buildLabCircuit, getLab } from '../experiments/labs';
+import { captureObservation, threePhaseReadings } from '../experiments/courseAnalysis';
 import {
   makeWorkspacePayload,
   readLocalWorkspace,
@@ -83,13 +84,21 @@ export interface TransientRuntime {
   samples: TransientSample[];
 }
 
+interface EditorSnapshot extends CircuitSnapshot {
+  activeLabId: string;
+  mode: 'guided' | 'free';
+  referencePortId: string | null;
+}
 interface HistoryState {
-  past: CircuitSnapshot[];
-  future: CircuitSnapshot[];
-  transactionBefore: CircuitSnapshot | null;
+  past: EditorSnapshot[];
+  future: EditorSnapshot[];
+  transactionBefore: EditorSnapshot | null;
 }
 
 export interface LabStore {
+  referencePortId: string | null;
+  setReferencePort: (id: string | null) => void;
+  replaceComponent: (id: string, type: ComponentType) => void;
   components: LabComponent[];
   wires: Wire[];
   result: SimulationResult;
@@ -176,6 +185,7 @@ export interface LabStore {
 }
 
 interface InitialState {
+  referencePortId?: string | null;
   components: LabComponent[];
   wires: Wire[];
   measurements: MeasurementRow[];
@@ -186,8 +196,11 @@ interface InitialState {
 const MAX_HISTORY = 60;
 const MAX_WIRES_PER_PORT = 3;
 
-function cloneSnapshot(snapshot: CircuitSnapshot): CircuitSnapshot {
+function cloneSnapshot(snapshot: EditorSnapshot): EditorSnapshot {
   return {
+    activeLabId: snapshot.activeLabId,
+    mode: snapshot.mode,
+    referencePortId: snapshot.referencePortId,
     components: snapshot.components.map((component) => ({
       ...component,
       position: [...component.position] as [number, number],
@@ -197,8 +210,8 @@ function cloneSnapshot(snapshot: CircuitSnapshot): CircuitSnapshot {
   };
 }
 
-function currentSnapshot(state: Pick<LabStore, 'components' | 'wires'>): CircuitSnapshot {
-  return cloneSnapshot({ components: state.components, wires: state.wires });
+function currentSnapshot(state: Pick<LabStore, 'components' | 'wires' | 'activeLabId' | 'mode' | 'referencePortId'>): EditorSnapshot {
+  return cloneSnapshot({ components: state.components, wires: state.wires, activeLabId: state.activeLabId, mode: state.mode, referencePortId: state.referencePortId });
 }
 
 function sameSnapshot(a: CircuitSnapshot, b: CircuitSnapshot): boolean {
@@ -257,14 +270,15 @@ function initialData(): InitialState {
       measurements: saved.measurements,
       activeLabId: saved.activeLabId,
       mode: saved.mode,
+      referencePortId: saved.referencePortId ?? null,
     };
   }
-  const starter = buildLabCircuit('ohms-law', false);
+  const starter = buildLabCircuit('iv-characteristics', false);
   return {
     components: starter.components,
     wires: starter.wires,
     measurements: [],
-    activeLabId: 'ohms-law',
+    activeLabId: 'iv-characteristics',
     mode: 'guided',
   };
 }
@@ -422,6 +436,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
   };
 
   return {
+    referencePortId: initial.referencePortId ?? null,
     components: initial.components,
     wires: initial.wires,
     result: initialResult,
@@ -446,8 +461,17 @@ export const useLabStore = create<LabStore>()((set, get) => {
     setSideTab: (sideTab) => set({ sideTab }),
     setLibraryOpen: (libraryOpen) => set({ libraryOpen }),
     setActiveLab: (activeLabId) => {
-      getLab(activeLabId);
-      set({ activeLabId, sideTab: 'lab' });
+      get().loadLab(getLab(activeLabId).id, false);
+    },
+    setReferencePort: referencePortId => set({ referencePortId }),
+    replaceComponent: (id, type) => {
+      const state = get(), previous = state.components.find(c => c.id === id);
+      if (!previous || previous.type === type) return;
+      pushSnapshot();
+      const components = state.components.map(c => c.id === id ? { ...c, type, name: getDefinition(type).shortName, params: createDefaultParams(type), position: clampComponentPosition(type, c.position) } : c);
+      const valid = new Set(getDefinition(type).ports.map(p => `${id}:${p.key}`));
+      const wires = state.wires.filter(w => [w.fromPortId, w.toPortId].every(p => !p.startsWith(id + ':') || valid.has(p)));
+      set({ components, wires, result: solveWithCurrentMode(components, wires), ...resetInteraction() });
     },
     setMode: (mode) => set({ mode, sideTab: 'lab' }),
     setWireColor: (wireColor) => set({ wireColor }),
@@ -744,6 +768,9 @@ export const useLabStore = create<LabStore>()((set, get) => {
         set({
           components: before.components,
           wires: before.wires,
+          activeLabId: before.activeLabId,
+          mode: before.mode,
+          referencePortId: before.referencePortId,
           result,
           history: { ...state.history, transactionBefore: null },
         });
@@ -894,6 +921,9 @@ export const useLabStore = create<LabStore>()((set, get) => {
       set({
         components: previous.components,
         wires: previous.wires,
+        activeLabId: previous.activeLabId,
+        mode: previous.mode,
+        referencePortId: previous.referencePortId,
         result,
         history: {
           past: state.history.past.slice(0, -1),
@@ -917,6 +947,9 @@ export const useLabStore = create<LabStore>()((set, get) => {
       set({
         components: next.components,
         wires: next.wires,
+        activeLabId: next.activeLabId,
+        mode: next.mode,
+        referencePortId: next.referencePortId,
         result,
         history: {
           past: [...state.history.past, current].slice(-MAX_HISTORY),
@@ -941,6 +974,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         wires: built.wires,
         result,
         activeLabId: lab.id,
+        referencePortId: null,
         mode: 'guided',
         selectedId: null,
         selectedWireId: null,
@@ -975,7 +1009,8 @@ export const useLabStore = create<LabStore>()((set, get) => {
 
     recordMeasurement: () => {
       const state = get();
-      const issue = measurementIssue(state.components, state.result);
+      const phase = state.activeLabId.startsWith('three-phase-') ? threePhaseReadings(state, state.result) : null;
+      const issue = measurementIssue(state.components, state.result) ?? (state.activeLabId.startsWith('three-phase-') && phase?.wiringValid !== 1 ? '三相负载接法与当前实验不符，请检查接线。' : null);
       if (issue) {
         toast('error', '无法记录数据', issue);
         return;
@@ -1026,6 +1061,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         note:
           '由当前三维接线、仪器参数与实时电路仿真结果生成；未对记录值做人工修正。',
         sourceComponentId: voltmeter?.id ?? ammeter?.id ?? capacitor?.id ?? supply?.id,
+        observation: captureObservation(state, state.result, state.referencePortId ?? (state.activeLabId === 'potentials' ? 'potentials-ps:negative' : null)),
       };
       set({ measurements: [...state.measurements, row], sideTab: 'data' });
       toast('success', '测量数据已记录', `${lab.title} 已保存第 ${existing + 1} 组读数。`);
@@ -1133,6 +1169,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         measurements: state.measurements,
         activeLabId: state.activeLabId,
         mode: state.mode,
+        referencePortId: state.referencePortId,
       });
       const ok = writeLocalWorkspace(payload);
       if (ok) {
@@ -1161,6 +1198,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         measurements: workspace.measurements,
         activeLabId: workspace.activeLabId,
         mode: workspace.mode,
+        referencePortId: workspace.referencePortId ?? null,
         result,
         selectedId: null,
         selectedWireId: null,
@@ -1183,6 +1221,7 @@ export const useLabStore = create<LabStore>()((set, get) => {
         measurements: state.measurements,
         activeLabId: state.activeLabId,
         mode: state.mode,
+        referencePortId: state.referencePortId,
       });
     },
 

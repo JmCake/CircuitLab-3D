@@ -28,7 +28,7 @@ export function SidePanel() {
 
   const errors = result.diagnostics.filter((item) => item.level === 'error');
   const warnings = result.diagnostics.filter((item) => item.level === 'warning');
-  const supply = components.find((component) => component.type === 'power-supply');
+  const supply = components.find((component) => component.type === (result.domain === 'ac' ? 'three-phase-source' : 'power-supply'));
   const supplyElement = supply ? result.elements[supply.id] : undefined;
   const enabledSupply = supply ? Boolean(supply.params.enabled) : false;
   const status = errors.length > 0
@@ -76,11 +76,11 @@ export function SidePanel() {
           {supplyElement && enabledSupply ? (
             <>
               <span>
-                <em>U</em>
+                <em>{result.domain === 'ac' ? 'U_AN' : 'U'}</em>
                 {formatVoltage(typeof supplyElement.flags?.outputVoltage === 'number' ? (supplyElement.flags.outputVoltage as number) : supplyElement.voltage)}
               </span>
               <span>
-                <em>I</em>
+                <em>{result.domain === 'ac' ? 'I_A' : 'I'}</em>
                 {formatCurrent(supplyElement.current)}
               </span>
             </>

@@ -133,6 +133,8 @@ async function runCheck(browser) {
   await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForSelector('.scene-canvas canvas', { timeout: 30000 });
   await page.waitForFunction(() => Boolean(window.__circuitlab), null, { timeout: 15000 });
+  // Preserve the original interaction regression fixture; the main course now has eight different lessons.
+  await page.evaluate(() => window.__circuitlab.store.getState().loadLab('ohms-law', false));
   await page.waitForTimeout(2600);
 
   const initial = await page.evaluate(() => window.__circuitlab.snapshot());

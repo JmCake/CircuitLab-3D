@@ -10,6 +10,8 @@ import {
   type Wire,
 } from '../circuit';
 import { NETWORK_LABS, NETWORK_LAYOUTS, conservationCheck } from './networkLabs';
+import { COURSE_LABS, COURSE_LAYOUTS } from './courseLabs';
+export { COURSE_LABS, POTENTIAL_POINTS } from './courseLabs';
 
 export interface LabStepCheck {
   done: boolean;
@@ -589,7 +591,7 @@ export const LABS: LabDefinition[] = [
 ];
 
 export function getLab(labId: string): LabDefinition {
-  return LABS.find((lab) => lab.id === labId) ?? LABS[0];
+  return COURSE_LABS.find(lab => lab.id === labId) ?? LABS.find((lab) => lab.id === labId) ?? COURSE_LABS[0];
 }
 
 export interface BuildComponentSpec {
@@ -733,7 +735,7 @@ export interface BuiltLabCircuit {
  * 正常教学流程由学生自己完成导线连接。
  */
 export function buildLabCircuit(labId: string, wired = false): BuiltLabCircuit {
-  const spec = LAB_LAYOUTS[labId] ?? LAB_LAYOUTS['ohms-law'];
+  const spec = COURSE_LAYOUTS[labId] ?? LAB_LAYOUTS[labId] ?? LAB_LAYOUTS['ohms-law'];
   const seenTypeCounts = new Map<ComponentType, number>();
   const aliasToComponent = new Map<string, LabComponent>();
   const components = spec.components.map((item) => {
@@ -744,12 +746,14 @@ export function buildLabCircuit(labId: string, wired = false): BuiltLabCircuit {
       id: `${labId}-${item.alias}`,
       type: item.type,
       name: `${definition.shortName} ${labId === 'ohms-law' ? count : item.alias.toUpperCase()}`,
-      position: item.position,
+      position: [...item.position],
       rotationY: item.rotationY ?? 0,
       params: {
         ...createDefaultParams(item.type),
         ...(item.params ?? {}),
+        ...(labId === 'iv-characteristics' && item.type === 'ammeter' ? { range: 0.2 } : {}),
         ...(wired && item.type === 'switch' ? { closed: true } : {}),
+        ...(!wired && COURSE_LABS.some(l => l.id === labId) && ['power-supply', 'three-phase-source'].includes(item.type) ? { enabled: false } : {}),
       },
     };
     aliasToComponent.set(item.alias, component);
@@ -773,5 +777,5 @@ export function buildLabCircuit(labId: string, wired = false): BuiltLabCircuit {
 }
 
 export function createStarterCircuit(): BuiltLabCircuit {
-  return buildLabCircuit('ohms-law', false);
+  return buildLabCircuit('iv-characteristics', false);
 }

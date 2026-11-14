@@ -46,7 +46,7 @@ jobs:
         run: google-chrome --version
       - name: Physical 3D interaction checks
         run: npm run test:e2e
-      - name: Teaching, transient, accessibility and viewport checks
+      - name: Eight course labs, three-phase measurements and viewport checks
         run: npm run test:e2e:advanced
       - name: Wire routing and rendered-mesh collision checks
         run: npm run test:e2e:wires

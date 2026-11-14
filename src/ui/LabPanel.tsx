@@ -13,7 +13,7 @@ import {
   COMPONENT_DEFINITIONS,
   type ComponentType,
 } from '../circuit';
-import { LABS, getLab, type LabContext } from '../experiments/labs';
+import { COURSE_LABS as LABS, getLab, type LabContext } from '../experiments/labs';
 import { useLabStore } from '../store/labStore';
 
 function requiredKitCounts(types: ComponentType[]): [ComponentType, number][] {
@@ -61,7 +61,7 @@ export function LabPanel() {
   );
   const completed = checks.filter((check) => check.done).length;
   const progress = checks.length > 0 ? completed / checks.length : 0;
-  const kitCounts = requiredKitCounts(lab.kit);
+  const kitCounts = requiredKitCounts(lab.kit.map(type => lab.id === 'iv-characteristics' && type === 'resistor' && components.some(c => c.id === 'iv-characteristics-r1' && c.type === 'bulb') ? 'bulb' : type));
   const diagnosticErrors = result.diagnostics.filter((item) => item.level === 'error');
   const diagnosticWarnings = result.diagnostics.filter((item) => item.level === 'warning');
 
@@ -140,6 +140,7 @@ export function LabPanel() {
           aria-label="选择教学实验"
           onChange={(event) => setActiveLab(event.target.value)}
         >
+          {!LABS.some(l => l.id === activeLabId) && <option value={activeLabId}>{lab.title}（已存实验）</option>}
           {LABS.map((item) => (
             <option key={item.id} value={item.id}>
               {item.index} · {item.title}
@@ -153,7 +154,7 @@ export function LabPanel() {
           title="重新摆放本实验所需器材（可撤销）"
         >
           <PackagePlus size={15} />
-          准备器材
+          重置器材
         </button>
       </div>
 

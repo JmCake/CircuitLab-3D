@@ -20,7 +20,7 @@ export function terminalCurrents(component: LabComponent, result: SimulationResu
 
 /** Independent conservation check, using the actual wire nets, including breadboard groups. */
 export function auditCircuit(snapshot: CircuitSnapshot, result: SimulationResult) {
-  if (!result.solved) return null;
+  if (!result.solved || result.domain === 'ac') return null;
   const union = new UnionFind();
   const known = new Set<string>();
   for (const c of snapshot.components) {
@@ -77,7 +77,7 @@ export interface TheveninResult {
 export function analyzeThevenin(snapshot: CircuitSnapshot, loadId: string): TheveninResult | null {
   const load = snapshot.components.find(c => c.id === loadId);
   if (!load || !['resistor', 'resistor-box', 'bulb'].includes(load.type) ||
-      snapshot.components.some(c => c.type === 'led' || c.type === 'capacitor')) return null;
+      snapshot.components.some(c => ['led', 'capacitor', 'bulb', 'three-phase-source'].includes(c.type))) return null;
   const keys = getDefinition(load.type).ports;
   // Reuse the load ID/port keys so junctions with several stacked leads stay connected.
   const probeId = '__analysis_probe__';
@@ -110,7 +110,7 @@ export function analyzeThevenin(snapshot: CircuitSnapshot, loadId: string): Thev
 /** Linearity check with independent sources suppressed, not physically switched off/opened. */
 export function analyzeSuperposition(snapshot: CircuitSnapshot, targetId: string) {
   const sources = snapshot.components.filter(c => c.type === 'power-supply' && c.params.enabled);
-  if (sources.length < 2 || snapshot.components.some(c => c.type === 'led' || c.type === 'capacitor')) return null;
+  if (sources.length < 2 || snapshot.components.some(c => ['led', 'capacitor', 'bulb', 'three-phase-source'].includes(c.type))) return null;
   const full = simulateCircuit(snapshot);
   if (!full.solved || full.status === 'error' || !full.elements[targetId]) return null;
   const contributions = sources.map(source => {

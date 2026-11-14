@@ -7,6 +7,7 @@
 
 export type ComponentType =
   | 'power-supply'
+  | 'three-phase-source'
   | 'ammeter'
   | 'voltmeter'
   | 'resistor'
@@ -169,15 +170,36 @@ export interface SimulationOptions {
 }
 
 export interface SimulationResult {
+  domain?: 'dc' | 'ac';
   status: SimulationStatus;
   solved: boolean;
   nodeVoltages: Record<string, number>;
+  /** DC potentials by stable port ID. AC values live in `ac.portVoltages`. */
+  portVoltages?: Record<string, number>;
+  ac?: ACResult;
   elements: Record<string, ElementResult>;
   diagnostics: Diagnostic[];
   /** 本次解算对应的电容电压（暂态） */
   capacitorVoltages?: Record<string, number>;
   totalPower?: number;
   solveMs?: number;
+}
+
+/** RMS phasor, using exp(jωt). */
+export interface Complex { re: number; im: number }
+export interface ACResult {
+  frequencyHz: number;
+  portVoltages: Record<string, Complex>;
+  /** Currents INTO each physical terminal, including all four source terminals. */
+  terminalCurrents: Record<string, Complex>;
+  audit: { kclResidualA: number; powerResidualW: number; passed: boolean };
+}
+
+export interface CourseObservation {
+  version: 1;
+  topology: string;
+  settings: ParamBag;
+  values: Record<string, number>;
 }
 
 export interface MeasurementRow {
@@ -190,6 +212,7 @@ export interface MeasurementRow {
   resistance: number | null;
   note?: string;
   sourceComponentId?: string;
+  observation?: CourseObservation;
 }
 
 export interface SavedWorkspace {
@@ -198,6 +221,7 @@ export interface SavedWorkspace {
   savedAt: string;
   activeLabId: string;
   mode: 'guided' | 'free';
+  referencePortId?: string | null;
   components: LabComponent[];
   wires: Wire[];
   measurements: MeasurementRow[];
