@@ -151,6 +151,9 @@ export function CameraRig() {
     cameraBridge.worldToScreen = (point) => {
       const rect = gl.domElement.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return null;
+      // A demand-rendered camera may have a changed view offset before its next frame.
+      if (camera instanceof THREE.PerspectiveCamera) camera.updateProjectionMatrix();
+      camera.updateMatrixWorld(true);
       const projected = new THREE.Vector3(...point).project(camera);
       return [
         rect.left + (projected.x * 0.5 + 0.5) * rect.width,
