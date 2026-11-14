@@ -75,12 +75,12 @@ export const NETWORK_LABS: LabDefinition[] = [
 
 const equivalentLayout: LabBuildSpec = {
   components: [
-    { alias: 'ps', type: 'power-supply', position: [-0.62, -0.15], params: { voltage: 10 } },
-    { alias: 'r1', type: 'resistor', position: [-0.12, -0.2], params: { resistance: 1000 } },
-    { alias: 'r2', type: 'resistor', position: [0.25, -0.2], params: { resistance: 1000 } },
-    { alias: 'load', type: 'resistor-box', position: [0.02, 0.22], params: { resistance: 500 } },
-    { alias: 'vm', type: 'voltmeter', position: [0.64, -0.23], params: { range: 20 } },
-    { alias: 'am', type: 'ammeter', position: [0.63, 0.18], params: { range: 0.02 } },
+    { alias: 'ps', type: 'power-supply', position: [-0.94, -0.28], params: { voltage: 10 } },
+    { alias: 'r1', type: 'resistor', position: [-0.28, -0.30], params: { resistance: 1000 } },
+    { alias: 'r2', type: 'resistor', position: [0.34, -0.30], params: { resistance: 1000 } },
+    { alias: 'load', type: 'resistor-box', position: [0.30, 0.27], params: { resistance: 500 } },
+    { alias: 'vm', type: 'voltmeter', position: [0.96, 0.29], params: { range: 20 } },
+    { alias: 'am', type: 'ammeter', position: [0.96, -0.30], params: { range: 0.02 } },
   ],
   wires: [
     ['ps', 'positive', 'r1', 'a'], ['r1', 'b', 'r2', 'a'], ['r2', 'b', 'ps', 'negative'],
@@ -93,13 +93,13 @@ export const NETWORK_LAYOUTS: Record<string, LabBuildSpec> = {
   'max-power': equivalentLayout,
   superposition: {
     components: [
-      { alias: 'ps1', type: 'power-supply', position: [-0.64, -0.24], params: { voltage: 6 } },
-      { alias: 'ps2', type: 'power-supply', position: [-0.64, 0.24], params: { voltage: 3 } },
-      { alias: 'r1', type: 'resistor', position: [-0.09, -0.24], params: { resistance: 1000 } },
-      { alias: 'r2', type: 'resistor', position: [-0.09, 0.17], params: { resistance: 1500 } },
-      { alias: 'load', type: 'resistor-box', position: [0.28, 0.19], params: { resistance: 1000 } },
-      { alias: 'vm', type: 'voltmeter', position: [0.64, -0.27], params: { range: 20 } },
-      { alias: 'am', type: 'ammeter', position: [0.28, -0.24], params: { range: 0.02 } },
+      { alias: 'ps1', type: 'power-supply', position: [-0.94, -0.30], params: { voltage: 6 } },
+      { alias: 'ps2', type: 'power-supply', position: [-0.94, 0.27], params: { voltage: 3 } },
+      { alias: 'r1', type: 'resistor', position: [-0.28, -0.30], params: { resistance: 1000 } },
+      { alias: 'r2', type: 'resistor', position: [-0.28, 0.27], params: { resistance: 1500 } },
+      { alias: 'load', type: 'resistor-box', position: [0.34, 0.27], params: { resistance: 1000 } },
+      { alias: 'vm', type: 'voltmeter', position: [0.96, 0.27], params: { range: 20 } },
+      { alias: 'am', type: 'ammeter', position: [0.34, -0.30], params: { range: 0.02 } },
     ],
     wires: [
       ['ps1', 'positive', 'r1', 'a'], ['ps2', 'positive', 'r2', 'a'],

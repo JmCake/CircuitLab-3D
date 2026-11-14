@@ -39,4 +39,32 @@ describe('课程切换、参考点与测量存档', () => {
     const saved = validateWorkspace(JSON.parse(JSON.stringify(store.getState().getWorkspace())))!; expect(saved.components.find(c => c.id === 'd')?.type).toBe('oscilloscope');
     store.getState().importWorkspace(saved); expect(useScopeStore.getState().held.d).toBeUndefined();
   });
+  it('整理旧工程保留参数、真实端口、读数和测量，且可撤销', () => {
+    const store = useLabStore;
+    store.getState().loadLab('three-phase-delta', true);
+    store.getState().setParam('three-phase-delta-ps', 'phaseVoltage', 36);
+    store.getState().recordMeasurement();
+    store.getState().setComponentPosition('three-phase-delta-ra', [0.10, 0]);
+    const before = store.getState();
+    const connections = before.wires.map(w => [w.id, w.fromPortId, w.toPortId]);
+    expect(before.arrangeBench()).toBe(true);
+    const after = store.getState();
+    expect(after.result).toBe(before.result);
+    expect(after.measurements).toBe(before.measurements);
+    expect(after.components.map(c => c.params)).toEqual(before.components.map(c => c.params));
+    expect(after.wires.map(w => [w.id, w.fromPortId, w.toPortId])).toEqual(connections);
+    expect(after.components.find(c => c.id.endsWith('-ra'))!.position).not.toEqual([0.10, 0]);
+    store.getState().undo(); expect(store.getState().components).toEqual(before.components);
+    store.getState().redo(); expect(store.getState().components).toEqual(after.components);
+  });
+  it('额外器材占据预设位置时不覆盖它，不改变工程或生成空撤销项', () => {
+    const store = useLabStore;
+    store.getState().loadLab('three-phase-star', true);
+    store.getState().addComponent('resistor-box', [-0.32, -0.30]);
+    const before = store.getState();
+    expect(before.arrangeBench()).toBe(false);
+    expect(store.getState().components).toBe(before.components);
+    expect(store.getState().wires).toBe(before.wires);
+    expect(store.getState().history).toBe(before.history);
+  });
 });

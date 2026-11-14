@@ -1,0 +1,890 @@
+{
+  "url": "http://127.0.0.1:11664/",
+  "browserPlugin": "Browser plugin not available; project Playwright runtime used",
+  "labs": [
+    {
+      "id": "iv-characteristics",
+      "wires": [
+        {
+          "id": "iv-characteristics-demo-w1",
+          "mode": "direct",
+          "fingerprint": -1495998146,
+          "vertices": 392
+        },
+        {
+          "id": "iv-characteristics-demo-w2",
+          "mode": "direct",
+          "fingerprint": 1313886817,
+          "vertices": 1096
+        },
+        {
+          "id": "iv-characteristics-demo-w3",
+          "mode": "direct",
+          "fingerprint": -231633615,
+          "vertices": 752
+        },
+        {
+          "id": "iv-characteristics-demo-w4",
+          "mode": "direct",
+          "fingerprint": 725116889,
+          "vertices": 1936
+        },
+        {
+          "id": "iv-characteristics-demo-w5",
+          "mode": "desk",
+          "fingerprint": 1546453148,
+          "vertices": 1144
+        },
+        {
+          "id": "iv-characteristics-demo-w6",
+          "mode": "direct",
+          "fingerprint": -1404118878,
+          "vertices": 920
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 323,
+      "gap": 0.2899999999999999,
+      "routeMs": 8.199999988079071,
+      "paths": [
+        {
+          "id": "iv-characteristics-demo-w1",
+          "mode": "direct",
+          "length": 0.23253818968138099,
+          "color": "b94b43"
+        },
+        {
+          "id": "iv-characteristics-demo-w2",
+          "mode": "direct",
+          "length": 0.8100583090643318,
+          "color": "b94b43"
+        },
+        {
+          "id": "iv-characteristics-demo-w3",
+          "mode": "direct",
+          "length": 0.5549828666449222,
+          "color": "b94b43"
+        },
+        {
+          "id": "iv-characteristics-demo-w4",
+          "mode": "direct",
+          "length": 1.4458214445918214,
+          "color": "353e42"
+        },
+        {
+          "id": "iv-characteristics-demo-w5",
+          "mode": "desk",
+          "length": 0.8499776805541541,
+          "color": "b94b43"
+        },
+        {
+          "id": "iv-characteristics-demo-w6",
+          "mode": "direct",
+          "length": 0.682299370746335,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "potentials",
+      "wires": [
+        {
+          "id": "potentials-demo-w1",
+          "mode": "direct",
+          "fingerprint": 1841633676,
+          "vertices": 704
+        },
+        {
+          "id": "potentials-demo-w2",
+          "mode": "direct",
+          "fingerprint": 2075656042,
+          "vertices": 640
+        },
+        {
+          "id": "potentials-demo-w3",
+          "mode": "direct",
+          "fingerprint": 780148586,
+          "vertices": 640
+        },
+        {
+          "id": "potentials-demo-w4",
+          "mode": "direct",
+          "fingerprint": 1369482155,
+          "vertices": 2248
+        },
+        {
+          "id": "potentials-demo-w5",
+          "mode": "desk",
+          "fingerprint": -3316806,
+          "vertices": 1536
+        },
+        {
+          "id": "potentials-demo-w6",
+          "mode": "desk",
+          "fingerprint": -1065163388,
+          "vertices": 1168
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 308,
+      "gap": 0.24999999999999992,
+      "routeMs": 32.20000001788139,
+      "paths": [
+        {
+          "id": "potentials-demo-w1",
+          "mode": "direct",
+          "length": 0.5174962147392532,
+          "color": "b94b43"
+        },
+        {
+          "id": "potentials-demo-w2",
+          "mode": "direct",
+          "length": 0.4704486437430767,
+          "color": "b4833c"
+        },
+        {
+          "id": "potentials-demo-w3",
+          "mode": "direct",
+          "length": 0.47044864374307643,
+          "color": "4e7c84"
+        },
+        {
+          "id": "potentials-demo-w4",
+          "mode": "direct",
+          "length": 2.0502221095324007,
+          "color": "353e42"
+        },
+        {
+          "id": "potentials-demo-w5",
+          "mode": "desk",
+          "length": 1.1422870923329957,
+          "color": "b94b43"
+        },
+        {
+          "id": "potentials-demo-w6",
+          "mode": "desk",
+          "length": 0.8680649142867505,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "kirchhoff",
+      "wires": [
+        {
+          "id": "kirchhoff-demo-w1",
+          "mode": "direct",
+          "fingerprint": -1495998146,
+          "vertices": 392
+        },
+        {
+          "id": "kirchhoff-demo-w2",
+          "mode": "direct",
+          "fingerprint": 1313886817,
+          "vertices": 1096
+        },
+        {
+          "id": "kirchhoff-demo-w3",
+          "mode": "direct",
+          "fingerprint": -231633615,
+          "vertices": 752
+        },
+        {
+          "id": "kirchhoff-demo-w4",
+          "mode": "direct",
+          "fingerprint": 1637039676,
+          "vertices": 1104
+        },
+        {
+          "id": "kirchhoff-demo-w5",
+          "mode": "direct",
+          "fingerprint": 725116889,
+          "vertices": 1936
+        },
+        {
+          "id": "kirchhoff-demo-w6",
+          "mode": "direct",
+          "fingerprint": 354976552,
+          "vertices": 1616
+        },
+        {
+          "id": "kirchhoff-demo-w7",
+          "mode": "desk",
+          "fingerprint": -874915015,
+          "vertices": 1176
+        },
+        {
+          "id": "kirchhoff-demo-w8",
+          "mode": "direct",
+          "fingerprint": -1404118878,
+          "vertices": 920
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 372,
+      "gap": 0.2899999999999999,
+      "routeMs": 10.599999994039536,
+      "paths": [
+        {
+          "id": "kirchhoff-demo-w1",
+          "mode": "direct",
+          "length": 0.23253818968138099,
+          "color": "b94b43"
+        },
+        {
+          "id": "kirchhoff-demo-w2",
+          "mode": "direct",
+          "length": 0.8100583090643318,
+          "color": "b94b43"
+        },
+        {
+          "id": "kirchhoff-demo-w3",
+          "mode": "direct",
+          "length": 0.5549828666449222,
+          "color": "b94b43"
+        },
+        {
+          "id": "kirchhoff-demo-w4",
+          "mode": "direct",
+          "length": 0.8160045240219895,
+          "color": "b94b43"
+        },
+        {
+          "id": "kirchhoff-demo-w5",
+          "mode": "direct",
+          "length": 1.4458214445918214,
+          "color": "353e42"
+        },
+        {
+          "id": "kirchhoff-demo-w6",
+          "mode": "direct",
+          "length": 1.2040054148560653,
+          "color": "353e42"
+        },
+        {
+          "id": "kirchhoff-demo-w7",
+          "mode": "desk",
+          "length": 0.875010342102608,
+          "color": "b94b43"
+        },
+        {
+          "id": "kirchhoff-demo-w8",
+          "mode": "direct",
+          "length": 0.682299370746335,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "superposition",
+      "wires": [
+        {
+          "id": "superposition-demo-w1",
+          "mode": "direct",
+          "fingerprint": -620851867,
+          "vertices": 696
+        },
+        {
+          "id": "superposition-demo-w2",
+          "mode": "direct",
+          "fingerprint": -2000917003,
+          "vertices": 696
+        },
+        {
+          "id": "superposition-demo-w3",
+          "mode": "desk",
+          "fingerprint": 1100750188,
+          "vertices": 992
+        },
+        {
+          "id": "superposition-demo-w4",
+          "mode": "direct",
+          "fingerprint": 7335577,
+          "vertices": 1064
+        },
+        {
+          "id": "superposition-demo-w5",
+          "mode": "desk",
+          "fingerprint": -28903406,
+          "vertices": 1240
+        },
+        {
+          "id": "superposition-demo-w6",
+          "mode": "desk",
+          "fingerprint": -1135503145,
+          "vertices": 2248
+        },
+        {
+          "id": "superposition-demo-w7",
+          "mode": "desk",
+          "fingerprint": -1388275984,
+          "vertices": 1344
+        },
+        {
+          "id": "superposition-demo-w8",
+          "mode": "desk",
+          "fingerprint": -928626217,
+          "vertices": 1264
+        },
+        {
+          "id": "superposition-demo-w9",
+          "mode": "direct",
+          "fingerprint": -2064789305,
+          "vertices": 880
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 509,
+      "gap": 0.22000000000000008,
+      "routeMs": 26,
+      "paths": [
+        {
+          "id": "superposition-demo-w1",
+          "mode": "direct",
+          "length": 0.512221067984062,
+          "color": "b94b43"
+        },
+        {
+          "id": "superposition-demo-w2",
+          "mode": "direct",
+          "length": 0.5122210679840622,
+          "color": "b94b43"
+        },
+        {
+          "id": "superposition-demo-w3",
+          "mode": "desk",
+          "length": 0.7335080555218514,
+          "color": "b4833c"
+        },
+        {
+          "id": "superposition-demo-w4",
+          "mode": "direct",
+          "length": 0.7882779337329304,
+          "color": "b4833c"
+        },
+        {
+          "id": "superposition-demo-w5",
+          "mode": "desk",
+          "length": 0.9210774429168891,
+          "color": "b4833c"
+        },
+        {
+          "id": "superposition-demo-w6",
+          "mode": "desk",
+          "length": 1.6985478834264718,
+          "color": "353e42"
+        },
+        {
+          "id": "superposition-demo-w7",
+          "mode": "desk",
+          "length": 0.9985853182450696,
+          "color": "353e42"
+        },
+        {
+          "id": "superposition-demo-w8",
+          "mode": "desk",
+          "length": 0.9392079466339607,
+          "color": "b94b43"
+        },
+        {
+          "id": "superposition-demo-w9",
+          "mode": "direct",
+          "length": 0.6523523803142224,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "thevenin",
+      "wires": [
+        {
+          "id": "thevenin-demo-w1",
+          "mode": "direct",
+          "fingerprint": 1841633676,
+          "vertices": 704
+        },
+        {
+          "id": "thevenin-demo-w2",
+          "mode": "direct",
+          "fingerprint": 2075656042,
+          "vertices": 640
+        },
+        {
+          "id": "thevenin-demo-w3",
+          "mode": "direct",
+          "fingerprint": 2097993235,
+          "vertices": 1944
+        },
+        {
+          "id": "thevenin-demo-w4",
+          "mode": "direct",
+          "fingerprint": 145083803,
+          "vertices": 1096
+        },
+        {
+          "id": "thevenin-demo-w5",
+          "mode": "desk",
+          "fingerprint": 1540538213,
+          "vertices": 1688
+        },
+        {
+          "id": "thevenin-demo-w6",
+          "mode": "desk",
+          "fingerprint": 1254989839,
+          "vertices": 2248
+        },
+        {
+          "id": "thevenin-demo-w7",
+          "mode": "desk",
+          "fingerprint": -35755937,
+          "vertices": 1296
+        },
+        {
+          "id": "thevenin-demo-w8",
+          "mode": "direct",
+          "fingerprint": -1334168330,
+          "vertices": 944
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 413,
+      "gap": 0.24999999999999992,
+      "routeMs": 49.5,
+      "paths": [
+        {
+          "id": "thevenin-demo-w1",
+          "mode": "direct",
+          "length": 0.5174962147392532,
+          "color": "b94b43"
+        },
+        {
+          "id": "thevenin-demo-w2",
+          "mode": "direct",
+          "length": 0.4704486437430767,
+          "color": "b4833c"
+        },
+        {
+          "id": "thevenin-demo-w3",
+          "mode": "direct",
+          "length": 1.4471293019321623,
+          "color": "353e42"
+        },
+        {
+          "id": "thevenin-demo-w4",
+          "mode": "direct",
+          "length": 0.8154838822802033,
+          "color": "b4833c"
+        },
+        {
+          "id": "thevenin-demo-w5",
+          "mode": "desk",
+          "length": 1.2542424545400646,
+          "color": "b4833c"
+        },
+        {
+          "id": "thevenin-demo-w6",
+          "mode": "desk",
+          "length": 1.9713639839629833,
+          "color": "353e42"
+        },
+        {
+          "id": "thevenin-demo-w7",
+          "mode": "desk",
+          "length": 0.961054163373985,
+          "color": "b94b43"
+        },
+        {
+          "id": "thevenin-demo-w8",
+          "mode": "direct",
+          "length": 0.6988972340124682,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "max-power",
+      "wires": [
+        {
+          "id": "max-power-demo-w1",
+          "mode": "direct",
+          "fingerprint": 1841633676,
+          "vertices": 704
+        },
+        {
+          "id": "max-power-demo-w2",
+          "mode": "direct",
+          "fingerprint": 2075656042,
+          "vertices": 640
+        },
+        {
+          "id": "max-power-demo-w3",
+          "mode": "direct",
+          "fingerprint": 2097993235,
+          "vertices": 1944
+        },
+        {
+          "id": "max-power-demo-w4",
+          "mode": "direct",
+          "fingerprint": 145083803,
+          "vertices": 1096
+        },
+        {
+          "id": "max-power-demo-w5",
+          "mode": "desk",
+          "fingerprint": 1540538213,
+          "vertices": 1688
+        },
+        {
+          "id": "max-power-demo-w6",
+          "mode": "desk",
+          "fingerprint": 1254989839,
+          "vertices": 2248
+        },
+        {
+          "id": "max-power-demo-w7",
+          "mode": "desk",
+          "fingerprint": -35755937,
+          "vertices": 1296
+        },
+        {
+          "id": "max-power-demo-w8",
+          "mode": "direct",
+          "fingerprint": -1334168330,
+          "vertices": 944
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 413,
+      "gap": 0.24999999999999992,
+      "routeMs": 38.400000005960464,
+      "paths": [
+        {
+          "id": "max-power-demo-w1",
+          "mode": "direct",
+          "length": 0.5174962147392532,
+          "color": "b94b43"
+        },
+        {
+          "id": "max-power-demo-w2",
+          "mode": "direct",
+          "length": 0.4704486437430767,
+          "color": "b4833c"
+        },
+        {
+          "id": "max-power-demo-w3",
+          "mode": "direct",
+          "length": 1.4471293019321623,
+          "color": "353e42"
+        },
+        {
+          "id": "max-power-demo-w4",
+          "mode": "direct",
+          "length": 0.8154838822802033,
+          "color": "b4833c"
+        },
+        {
+          "id": "max-power-demo-w5",
+          "mode": "desk",
+          "length": 1.2542424545400646,
+          "color": "b4833c"
+        },
+        {
+          "id": "max-power-demo-w6",
+          "mode": "desk",
+          "length": 1.9713639839629833,
+          "color": "353e42"
+        },
+        {
+          "id": "max-power-demo-w7",
+          "mode": "desk",
+          "length": 0.961054163373985,
+          "color": "b94b43"
+        },
+        {
+          "id": "max-power-demo-w8",
+          "mode": "direct",
+          "length": 0.6988972340124682,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "three-phase-star",
+      "wires": [
+        {
+          "id": "three-phase-star-demo-w1",
+          "mode": "desk",
+          "fingerprint": -1585684669,
+          "vertices": 1136
+        },
+        {
+          "id": "three-phase-star-demo-w2",
+          "mode": "desk",
+          "fingerprint": 219716653,
+          "vertices": 1584
+        },
+        {
+          "id": "three-phase-star-demo-w3",
+          "mode": "desk",
+          "fingerprint": -1857907734,
+          "vertices": 1888
+        },
+        {
+          "id": "three-phase-star-demo-w4",
+          "mode": "desk",
+          "fingerprint": -1164554070,
+          "vertices": 2248
+        },
+        {
+          "id": "three-phase-star-demo-w5",
+          "mode": "direct",
+          "fingerprint": -1232974974,
+          "vertices": 1064
+        },
+        {
+          "id": "three-phase-star-demo-w6",
+          "mode": "direct",
+          "fingerprint": -1477470294,
+          "vertices": 1064
+        },
+        {
+          "id": "three-phase-star-demo-w7",
+          "mode": "desk",
+          "fingerprint": 31973258,
+          "vertices": 1184
+        },
+        {
+          "id": "three-phase-star-demo-w8",
+          "mode": "desk",
+          "fingerprint": 1933527529,
+          "vertices": 1216
+        },
+        {
+          "id": "three-phase-star-demo-w9",
+          "mode": "desk",
+          "fingerprint": 500512042,
+          "vertices": 1008
+        },
+        {
+          "id": "three-phase-star-demo-w10",
+          "mode": "desk",
+          "fingerprint": 1035652794,
+          "vertices": 1016
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 535,
+      "gap": 0.16500000000000004,
+      "routeMs": 22.19999998807907,
+      "paths": [
+        {
+          "id": "three-phase-star-demo-w1",
+          "mode": "desk",
+          "length": 0.8446081855575419,
+          "color": "bd9034"
+        },
+        {
+          "id": "three-phase-star-demo-w2",
+          "mode": "desk",
+          "length": 1.1782870923329958,
+          "color": "bd9034"
+        },
+        {
+          "id": "three-phase-star-demo-w3",
+          "mode": "desk",
+          "length": 1.40946094096977,
+          "color": "377c60"
+        },
+        {
+          "id": "three-phase-star-demo-w4",
+          "mode": "desk",
+          "length": 1.9698784694783205,
+          "color": "b94b43"
+        },
+        {
+          "id": "three-phase-star-demo-w5",
+          "mode": "direct",
+          "length": 0.7888577912329655,
+          "color": "426f9c"
+        },
+        {
+          "id": "three-phase-star-demo-w6",
+          "mode": "direct",
+          "length": 0.7892451846262307,
+          "color": "426f9c"
+        },
+        {
+          "id": "three-phase-star-demo-w7",
+          "mode": "desk",
+          "length": 0.8804547980082682,
+          "color": "426f9c"
+        },
+        {
+          "id": "three-phase-star-demo-w8",
+          "mode": "desk",
+          "length": 0.9027376912001573,
+          "color": "426f9c"
+        },
+        {
+          "id": "three-phase-star-demo-w9",
+          "mode": "desk",
+          "length": 0.7465976611537868,
+          "color": "b94b43"
+        },
+        {
+          "id": "three-phase-star-demo-w10",
+          "mode": "desk",
+          "length": 0.7504682562223037,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    },
+    {
+      "id": "three-phase-delta",
+      "wires": [
+        {
+          "id": "three-phase-delta-demo-w1",
+          "mode": "desk",
+          "fingerprint": -1585684669,
+          "vertices": 1136
+        },
+        {
+          "id": "three-phase-delta-demo-w2",
+          "mode": "direct",
+          "fingerprint": -1729603400,
+          "vertices": 1152
+        },
+        {
+          "id": "three-phase-delta-demo-w3",
+          "mode": "desk",
+          "fingerprint": 390165231,
+          "vertices": 2248
+        },
+        {
+          "id": "three-phase-delta-demo-w4",
+          "mode": "desk",
+          "fingerprint": 687752886,
+          "vertices": 1408
+        },
+        {
+          "id": "three-phase-delta-demo-w5",
+          "mode": "direct",
+          "fingerprint": 1300149409,
+          "vertices": 616
+        },
+        {
+          "id": "three-phase-delta-demo-w6",
+          "mode": "direct",
+          "fingerprint": -1184831846,
+          "vertices": 2016
+        },
+        {
+          "id": "three-phase-delta-demo-w7",
+          "mode": "direct",
+          "fingerprint": -1284016447,
+          "vertices": 616
+        },
+        {
+          "id": "three-phase-delta-demo-w8",
+          "mode": "desk",
+          "fingerprint": 1809121268,
+          "vertices": 1200
+        },
+        {
+          "id": "three-phase-delta-demo-w9",
+          "mode": "desk",
+          "fingerprint": 1035652794,
+          "vertices": 1016
+        }
+      ],
+      "collisions": [],
+      "bodyMeshes": 486,
+      "gap": 0.21999999999999992,
+      "routeMs": 36.70000001788139,
+      "paths": [
+        {
+          "id": "three-phase-delta-demo-w1",
+          "mode": "desk",
+          "length": 0.8446081855575419,
+          "color": "bd9034"
+        },
+        {
+          "id": "three-phase-delta-demo-w2",
+          "mode": "direct",
+          "length": 0.8550373811805128,
+          "color": "bd9034"
+        },
+        {
+          "id": "three-phase-delta-demo-w3",
+          "mode": "desk",
+          "length": 1.8234716918825358,
+          "color": "bd9034"
+        },
+        {
+          "id": "three-phase-delta-demo-w4",
+          "mode": "desk",
+          "length": 1.0454609409697702,
+          "color": "377c60"
+        },
+        {
+          "id": "three-phase-delta-demo-w5",
+          "mode": "direct",
+          "length": 0.45171690338624493,
+          "color": "377c60"
+        },
+        {
+          "id": "three-phase-delta-demo-w6",
+          "mode": "direct",
+          "length": 1.505366258611167,
+          "color": "b94b43"
+        },
+        {
+          "id": "three-phase-delta-demo-w7",
+          "mode": "direct",
+          "length": 0.4517169033862449,
+          "color": "b94b43"
+        },
+        {
+          "id": "three-phase-delta-demo-w8",
+          "mode": "desk",
+          "length": 0.8913390016379338,
+          "color": "b94b43"
+        },
+        {
+          "id": "three-phase-delta-demo-w9",
+          "mode": "desk",
+          "length": 0.7504682562223037,
+          "color": "353e42"
+        }
+      ],
+      "solved": true,
+      "status": "ok"
+    }
+  ],
+  "errors": [],
+  "interactions": {
+    "tidyOldWorkspace": true,
+    "preserved": [
+      "parameters",
+      "physical ports",
+      "measurement records",
+      "solved readings"
+    ],
+    "undoRedo": true,
+    "mobileWidth": 390
+  }
+}

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { BENCH, findPortOwner, getDefinition, getPortWorldNormal, getPortWorldPosition, type LabComponent } from '../circuit';
+import { BENCH, findPortOwner, getDefinition, getPortWorldNormal, getPortWorldPosition, type LabComponent, type Wire } from '../circuit';
 
 export const WIRE_RADIUS = 0.0033;
 const CLEARANCE = WIRE_RADIUS + 0.006;
@@ -86,7 +86,7 @@ function onDesk(p: THREE.Vector3) {
 }
 
 /** Shared visibility graph, rebuilt when ANY instrument moves/rotates, reused by all leads. */
-export function createWireRoutingScene(components: LabComponent[]): WireRoutingScene {
+export function createWireRoutingScene(components: LabComponent[], cornerClearance = CORNER_CLEARANCE): WireRoutingScene {
   const obstacles = components.map(c => {
     const d = getDefinition(c.type);
     const cos = Math.cos(c.rotationY);
@@ -115,8 +115,8 @@ export function createWireRoutingScene(components: LabComponent[]): WireRoutingS
   });
   const floorNodes: THREE.Vector3[] = [];
   for (const box of obstacles) {
-    for (const x of [-box.halfX - CORNER_CLEARANCE, box.halfX + CORNER_CLEARANCE]) {
-      for (const z of [-box.halfZ - CORNER_CLEARANCE, box.halfZ + CORNER_CLEARANCE]) {
+    for (const x of [-box.halfX - cornerClearance, box.halfX + cornerClearance]) {
+      for (const z of [-box.halfZ - cornerClearance, box.halfZ + cornerClearance]) {
         const p = new THREE.Vector3(box.x + x * box.cos + z * box.sin, DESK_Y, box.z - x * box.sin + z * box.cos);
         if (onDesk(p) && clearSegment(p, p, obstacles)) floorNodes.push(p);
       }
@@ -292,4 +292,112 @@ export function routeWire(scene: WireRoutingScene, start: Pick<WireAttachment, '
   // A wall of instruments can block every desktop passage. Cross safely above their full envelopes.
   const height = Math.max(a.y, b.y, ...scene.obstacles.map(o => o.height)) + 0.065;
   return finish([a, leadA, new THREE.Vector3(leadA.x, height, leadA.z), new THREE.Vector3(leadB.x, height, leadB.z), leadB, b], scene, 'overhead');
+}
+
+export interface RoutedLead {
+  wire: Wire;
+  from: WireAttachment | null;
+  to: WireAttachment | null;
+  route: RoutedWire | null;
+}
+
+function sampleRoute(route: RoutedWire) {
+  const count = Math.min(96, Math.max(12, Math.ceil(route.curve.getLength() / 0.035)));
+  return Array.from({ length: count + 1 }, (_, i) => route.curve.getPoint(i / count));
+}
+function crossXZ(a: THREE.Vector3, b: THREE.Vector3, c: THREE.Vector3, d: THREE.Vector3) {
+  const ax = b.x - a.x, az = b.z - a.z, bx = d.x - c.x, bz = d.z - c.z;
+  const det = ax * bz - az * bx;
+  if (Math.abs(det) < 1e-10) return false;
+  const dx = c.x - a.x, dz = c.z - a.z;
+  const t = (dx * bz - dz * bx) / det, u = (dx * az - dz * ax) / det;
+  return t > 0.001 && t < 0.999 && u > 0.001 && u < 0.999;
+}
+function pointSegmentDistanceSqXZ(p: THREE.Vector3, a: THREE.Vector3, b: THREE.Vector3) {
+  const dx = b.x - a.x, dz = b.z - a.z;
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / Math.max(1e-12, dx * dx + dz * dz)));
+  return (p.x - a.x - t * dx) ** 2 + (p.z - a.z - t * dz) ** 2;
+}
+function clutterCost(points: THREE.Vector3[], reserved: THREE.Vector3[][]) {
+  let cost = 0;
+  for (const other of reserved) {
+    let crossings = 0, crowded = 0;
+    for (let i = 1; i < points.length - 1; i++) {
+      const p = points[i];
+      // Plug stacks intentionally meet. Judge the cable runs beyond their small fan-out region.
+      if ([points[0], points.at(-1)!, other[0], other.at(-1)!].some(end => Math.hypot(end.x - p.x, end.z - p.z) < 0.09)) continue;
+      let near = false;
+      for (let j = 1; j < other.length; j++) {
+        const a = points[i - 1], c = other[j - 1], d = other[j];
+        if (Math.max(a.x, p.x) < Math.min(c.x, d.x) - 0.016 || Math.min(a.x, p.x) > Math.max(c.x, d.x) + 0.016 ||
+          Math.max(a.z, p.z) < Math.min(c.z, d.z) - 0.016 || Math.min(a.z, p.z) > Math.max(c.z, d.z) + 0.016) continue;
+        if (crossXZ(points[i - 1], p, other[j - 1], other[j])) crossings++;
+        if (!near && pointSegmentDistanceSqXZ(p, other[j - 1], other[j]) < 0.016 ** 2) near = true;
+      }
+      if (near) crowded += p.distanceTo(points[i - 1]);
+    }
+    cost += Math.min(3, crossings) * 0.30 + crowded * 2.5;
+  }
+  return cost;
+}
+function sharpBendCost(points: THREE.Vector3[]) {
+  let cost = 0;
+  for (let i = 1; i < points.length - 1; i++) {
+    if (Math.min(points[i].distanceTo(points[0]), points[i].distanceTo(points.at(-1)!)) < 0.09) continue;
+    const incoming = points[i].clone().sub(points[i - 1]).normalize();
+    const outgoing = points[i + 1].clone().sub(points[i]).normalize();
+    const angle = Math.acos(THREE.MathUtils.clamp(incoming.dot(outgoing), -1, 1));
+    cost += Math.max(0, angle - 0.35) ** 2 * 0.12;
+  }
+  return cost;
+}
+
+/** Plan the harness together: short jumpers first, main circuits next, measurement leads last.
+ * Paths still use real sockets and full enclosure checks; colours and geometry never change nodes.
+ */
+export function routeWires(components: LabComponent[], wires: Wire[], scene: WireRoutingScene): RoutedLead[] {
+  if (!wires.length) return [];
+  const slots = new Map<string, number>();
+  const takeAttachment = (id: string) => { const slot = slots.get(id) ?? 0; slots.set(id, slot + 1); return getWireAttachment(components, id, slot); };
+  const leads = wires.map(wire => ({ wire, from: takeAttachment(wire.fromPortId), to: takeAttachment(wire.toPortId), route: null as RoutedWire | null }));
+  const isProbe = (wire: Wire) => [wire.fromPortId, wire.toPortId].some(id => ['voltmeter', 'multimeter', 'oscilloscope'].includes(findPortOwner(components, id)?.component.type ?? ''));
+  const ordered = [...leads].sort((a, b) => Number(isProbe(a.wire)) - Number(isProbe(b.wire)) ||
+    (a.from?.pathPoint.distanceTo(a.to?.pathPoint ?? a.from.pathPoint) ?? 0) - (b.from?.pathPoint.distanceTo(b.to?.pathPoint ?? b.from.pathPoint) ?? 0));
+  const alternatives = [scene, createWireRoutingScene(components, 0.075), createWireRoutingScene(components, 0.115)];
+  const reserved: THREE.Vector3[][] = [];
+  for (const [index, lead] of ordered.entries()) {
+    const { from, to } = lead;
+    if (!from || !to) continue;
+    const primary = routeWire(scene, from, to);
+    const candidates: RoutedWire[] = primary ? [primary] : [];
+    // Direct spans do not use floor graph corners, so all three scenes give the identical curve.
+    if (primary?.mode !== 'direct') for (const alternative of alternatives.slice(1)) {
+      const candidate = routeWire(alternative, from, to); if (candidate) candidates.push(candidate);
+    }
+    if (!candidates.length) continue;
+    if (from.normal.z > 0.8 && to.normal.z > 0.8) {
+      const a = from.pathPoint, b = to.pathPoint;
+      const launchA = a.clone().addScaledVector(from.normal, 0.05), launchB = b.clone().addScaledVector(to.normal, 0.05);
+      const floorA = new THREE.Vector3(launchA.x, DESK_Y, launchA.z), floorB = new THREE.Vector3(launchB.x, DESK_Y, launchB.z);
+      const zLanes = new Set([
+        ...[0.04, 0.075, 0.11].map(offset => Math.max(floorA.z, floorB.z) + offset),
+        ...scene.obstacles.map(o => o.z + o.halfZ + 0.065 + index % 3 * 0.018),
+      ].map(z => Math.round(z * 1000) / 1000));
+      for (const z of zLanes) {
+        const points = [a, launchA, floorA, new THREE.Vector3(floorA.x, DESK_Y, z), new THREE.Vector3(floorB.x, DESK_Y, z), floorB, launchB, b];
+        if (!points.every(onDesk) || !chainClear(points, scene.obstacles)) continue;
+        const candidate = finish(points, scene, 'desk');
+        if (candidate) candidates.push(candidate);
+      }
+    }
+    let bestCost = Infinity;
+    let bestPoints: THREE.Vector3[] = [];
+    for (const candidate of candidates) {
+      const points = sampleRoute(candidate);
+      const cost = candidate.curve.getLength() + clutterCost(points, reserved) + sharpBendCost(points) + (candidate.mode === 'overhead' ? 0.6 : 0);
+      if (cost < bestCost) { bestCost = cost; lead.route = candidate; bestPoints = points; }
+    }
+    reserved.push(bestPoints);
+  }
+  return leads;
 }

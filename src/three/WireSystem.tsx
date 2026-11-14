@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { type Wire as CircuitWire } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { MATERIALS } from './materials';
-import { createWireRoutingScene, getWireAttachment, routeWire, WIRE_RADIUS, type RoutedWire, type WireAttachment, type WireRoutingScene } from './wireRouting';
+import { createWireRoutingScene, getWireAttachment, routeWire, routeWires, WIRE_RADIUS, type RoutedWire, type WireAttachment, type WireRoutingScene } from './wireRouting';
 import { useViewStore } from '../store/viewStore';
 import { wireInspection } from './wireInspection';
 
@@ -210,15 +210,7 @@ export function WireSystem() {
   // Electrical parameter edits replace components too; routing depends only on instrument poses.
   const layoutKey = JSON.stringify(components.map(c => [c.id, c.type, ...c.position, c.rotationY]));
   const routingScene = useMemo(() => createWireRoutingScene(components), [layoutKey]);
-  const routed = useMemo(() => {
-    const slots = new Map<string, number>();
-    return wires.map(wire => {
-      const takeSlot = (id: string) => { const index = slots.get(id) ?? 0; slots.set(id, index + 1); return index; };
-      const from = getWireAttachment(components, wire.fromPortId, takeSlot(wire.fromPortId));
-      const to = getWireAttachment(components, wire.toPortId, takeSlot(wire.toPortId));
-      return { wire, from, to, route: from && to ? routeWire(routingScene, from, to) : null };
-    });
-  }, [layoutKey, wires, routingScene]);
+  const routed = useMemo(() => routeWires(components, wires, routingScene), [layoutKey, wires, routingScene]);
   const blocked = routed.filter(r => !r.route).length;
   useEffect(() => {
     useViewStore.setState({ blockedWires: blocked });

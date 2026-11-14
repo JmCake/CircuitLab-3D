@@ -26,6 +26,8 @@ import {
   type Wire,
 } from '../circuit';
 import { buildLabCircuit, getLab } from '../experiments/labs';
+import { arrangeLesson } from '../experiments/benchLayout';
+import { colorDemoWires } from '../experiments/wireColors';
 import { captureObservation, threePhaseReadings } from '../experiments/courseAnalysis';
 import {
   makeWorkspacePayload,
@@ -164,6 +166,7 @@ export interface LabStore {
   redo: () => void;
 
   loadLab: (labId: string, wired?: boolean) => void;
+  arrangeBench: () => boolean;
   clearBench: () => void;
 
   recordMeasurement: () => void;
@@ -991,6 +994,21 @@ export const useLabStore = create<LabStore>()((set, get) => {
           ? '该接线用于演示与自检，学生可拔除导线后重新完成实验。'
           : '请按实验步骤自行连接导线。',
       );
+    },
+
+    arrangeBench: () => {
+      const state = get();
+      const components = arrangeLesson(state.components, buildLabCircuit(state.activeLabId).components);
+      if (!components) { toast('warning', '无法整理台面', '请移开占据预设位置的额外器材。'); return false; }
+      const colors = new Map(colorDemoWires(components, state.wires).map(w => [w.id, w.color]));
+      const wires = state.wires.map(w => w.id.startsWith(`${state.activeLabId}-demo-w`) ? { ...w, color: colors.get(w.id)! } : w);
+      if (components.every((c, i) => c.rotationY === state.components[i].rotationY && c.position.every((v, axis) => v === state.components[i].position[axis])) &&
+        wires.every((w, i) => w.color === state.wires[i].color)) return true;
+      pushSnapshot();
+      // Geometry and cable colours have no electrical meaning. Keep readings and acquired data intact.
+      set({ components, wires, ...resetInteraction() });
+      toast('success', '已整理台面');
+      return true;
     },
 
     clearBench: () => {

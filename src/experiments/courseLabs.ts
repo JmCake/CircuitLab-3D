@@ -99,25 +99,50 @@ export const POTENTIAL_POINTS = [
 ] as const;
 
 const phaseBase: LabBuildSpec['components'] = [
-  { alias: 'ps', type: 'three-phase-source', position: [-0.66, -0.2] },
-  { alias: 'ra', type: 'resistor-box', position: [-0.10, -0.29], params: { resistance: 1000 } },
-  { alias: 'rb', type: 'resistor-box', position: [0.29, 0], params: { resistance: 1000 } },
-  { alias: 'rc', type: 'resistor-box', position: [-0.10, 0.29], params: { resistance: 1000 } },
-  { alias: 'am', type: 'ammeter', position: [0.68, -0.29], params: { range: 0.2, mode: 'ac' } },
-  { alias: 'vm', type: 'voltmeter', position: [0.68, 0.24], params: { range: 200, mode: 'ac' } },
+  { alias: 'ps', type: 'three-phase-source', position: [-0.97, -0.30] },
+  { alias: 'ra', type: 'resistor-box', position: [-0.32, -0.30], params: { resistance: 1000 } },
+  { alias: 'rb', type: 'resistor-box', position: [0.34, -0.30], params: { resistance: 1000 } },
+  { alias: 'rc', type: 'resistor-box', position: [1.00, -0.30], params: { resistance: 1000 } },
+  { alias: 'am', type: 'ammeter', position: [-1.01, 0.30], params: { range: 0.2, mode: 'ac' } },
+  { alias: 'vm', type: 'voltmeter', position: [-0.21, 0.30], params: { range: 200, mode: 'ac' } },
 ];
+const measurementLayout: LabBuildSpec = {
+  components: [
+    { alias: 'ps', type: 'power-supply', position: [-0.94, -0.30], params: { voltage: 6 } },
+    { alias: 'sw', type: 'switch', position: [-0.94, 0.28], rotationY: Math.PI, params: { closed: false } },
+    { alias: 'r1', type: 'resistor', position: [0.34, -0.30], params: { resistance: 1000 } },
+    { alias: 'am', type: 'ammeter', position: [-0.28, -0.30], params: { range: 0.02 } },
+    { alias: 'vm', type: 'voltmeter', position: [0.96, -0.30], params: { range: 20 } },
+  ],
+  wires: [['ps', 'positive', 'sw', 'a'], ['sw', 'b', 'am', 'positive'], ['am', 'negative', 'r1', 'a'],
+    ['r1', 'b', 'ps', 'negative'], ['vm', 'positive', 'r1', 'a'], ['vm', 'negative', 'r1', 'b']],
+};
 export const COURSE_LAYOUTS: Record<string, LabBuildSpec> = {
+  'iv-characteristics': measurementLayout,
+  'ohms-law': measurementLayout,
+  kirchhoff: {
+    components: [
+      { alias: 'ps', type: 'power-supply', position: [-0.94, -0.30], params: { voltage: 9 } },
+      { alias: 'sw', type: 'switch', position: [-0.94, 0.28], rotationY: Math.PI, params: { closed: true } },
+      { alias: 'am', type: 'ammeter', position: [-0.28, -0.30], params: { range: 0.02 } },
+      { alias: 'r1', type: 'resistor', position: [0.34, -0.30], params: { resistance: 1000 } },
+      { alias: 'r2', type: 'resistor', position: [0.34, 0.28], rotationY: Math.PI, params: { resistance: 1500 } },
+      { alias: 'vm', type: 'voltmeter', position: [0.96, -0.30], params: { range: 20 } },
+    ],
+    wires: [['ps', 'positive', 'sw', 'a'], ['sw', 'b', 'am', 'positive'], ['am', 'negative', 'r1', 'a'], ['am', 'negative', 'r2', 'a'],
+      ['r1', 'b', 'ps', 'negative'], ['r2', 'b', 'ps', 'negative'], ['vm', 'positive', 'r1', 'a'], ['vm', 'negative', 'r1', 'b']],
+  },
   potentials: { components: [
-    { alias: 'ps', type: 'power-supply', position: [-0.64, -0.16], params: { voltage: 12 } },
-    { alias: 'r1', type: 'resistor', position: [-0.13, -0.27], params: { resistance: 1000 } },
-    { alias: 'r2', type: 'resistor', position: [0.22, -0.08], params: { resistance: 2000 } },
-    { alias: 'r3', type: 'resistor', position: [-0.13, 0.22], params: { resistance: 3000 } },
-    { alias: 'vm', type: 'voltmeter', position: [0.66, 0.23], params: { range: 20 } },
+    { alias: 'ps', type: 'power-supply', position: [-0.94, -0.28], params: { voltage: 12 } },
+    { alias: 'r1', type: 'resistor', position: [-0.28, -0.30], params: { resistance: 1000 } },
+    { alias: 'r2', type: 'resistor', position: [0.34, -0.30], params: { resistance: 2000 } },
+    { alias: 'r3', type: 'resistor', position: [0.96, -0.30], params: { resistance: 3000 } },
+    { alias: 'vm', type: 'voltmeter', position: [0.04, 0.30], params: { range: 20 } },
   ], wires: [['ps', 'positive', 'r1', 'a'], ['r1', 'b', 'r2', 'a'], ['r2', 'b', 'r3', 'a'], ['r3', 'b', 'ps', 'negative'], ['vm', 'positive', 'r1', 'a'], ['vm', 'negative', 'r2', 'a']] },
-  'three-phase-star': { components: [...phaseBase, { alias: 'sw', type: 'switch', position: [-0.67, 0.26], params: { closed: true } }],
+  'three-phase-star': { components: [...phaseBase, { alias: 'sw', type: 'switch', position: [-0.61, 0.30], params: { closed: true } }],
     wires: [['ps', 'a', 'am', 'positive'], ['am', 'negative', 'ra', 'a'], ['ps', 'b', 'rb', 'a'], ['ps', 'c', 'rc', 'a'],
       ['ra', 'b', 'rb', 'b'], ['rb', 'b', 'rc', 'b'], ['ra', 'b', 'sw', 'a'], ['sw', 'b', 'ps', 'n'], ['vm', 'positive', 'ra', 'a'], ['vm', 'negative', 'ra', 'b']] },
   'three-phase-delta': { components: phaseBase,
-    wires: [['ps', 'a', 'am', 'positive'], ['am', 'negative', 'ra', 'a'], ['am', 'negative', 'rc', 'b'],
+    wires: [['ps', 'a', 'am', 'positive'], ['am', 'negative', 'ra', 'a'], ['ra', 'a', 'rc', 'b'],
       ['ps', 'b', 'ra', 'b'], ['ra', 'b', 'rb', 'a'], ['ps', 'c', 'rb', 'b'], ['rb', 'b', 'rc', 'a'], ['vm', 'positive', 'ra', 'a'], ['vm', 'negative', 'ra', 'b']] },
 };

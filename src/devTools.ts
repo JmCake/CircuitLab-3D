@@ -10,7 +10,7 @@ import { inspectRenderedWires } from './three/wireInspection';
 export function installDevTools(): void {
   if (!import.meta.env.DEV) return;
   const api = {
-    version: '0.4.0',
+    version: '0.4.1',
     store: useLabStore,
     camera: cameraBridge,
     wireClearance: inspectRenderedWires,

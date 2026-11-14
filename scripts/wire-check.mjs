@@ -58,7 +58,11 @@ try {
     const api = window.__circuitlab;
     api.store.getState().loadLab('ohms-law', true);
     const positions = { ps: [-0.65, -0.18], sw: [0.65, 0.2], r1: [0.12, -0.3], am: [0.65, -0.25], vm: [-0.65, 0.26] };
-    for (const [alias, p] of Object.entries(positions)) api.store.getState().setComponentPosition('ohms-law-' + alias, p);
+    // This is an independent obstruction fixture, not a particular lesson's current presentation pose.
+    const rotations = { ps: 0.055, sw: -0.03, r1: 0.02, am: -0.04, vm: 0.03 };
+    const workspace = api.store.getState().getWorkspace();
+    workspace.components = workspace.components.map(c => { const alias = c.id.slice('ohms-law-'.length); return { ...c, position: positions[alias], rotationY: rotations[alias] }; });
+    api.store.getState().importWorkspace(workspace);
     return api.store.getState().result.elements['ohms-law-am'].reading;
   });
   await page.waitForTimeout(250);

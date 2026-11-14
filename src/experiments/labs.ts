@@ -11,6 +11,7 @@ import {
 } from '../circuit';
 import { NETWORK_LABS, NETWORK_LAYOUTS, conservationCheck } from './networkLabs';
 import { COURSE_LABS, COURSE_LAYOUTS } from './courseLabs';
+import { colorDemoWires } from './wireColors';
 export { COURSE_LABS, POTENTIAL_POINTS } from './courseLabs';
 
 export interface LabStepCheck {
@@ -746,7 +747,8 @@ export function buildLabCircuit(labId: string, wired = false): BuiltLabCircuit {
       id: `${labId}-${item.alias}`,
       type: item.type,
       name: `${definition.shortName} ${labId === 'ohms-law' ? count : item.alias.toUpperCase()}`,
-      position: [...item.position],
+      // Earlier blueprints were drawn for the smaller bench; reserve a proper wiring aisle now.
+      position: COURSE_LAYOUTS[labId] || NETWORK_LAYOUTS[labId] ? [...item.position] : [item.position[0] * 1.42, item.position[1] * 1.15],
       rotationY: item.rotationY ?? 0,
       params: {
         ...createDefaultParams(item.type),
@@ -773,7 +775,7 @@ export function buildLabCircuit(labId: string, wired = false): BuiltLabCircuit {
       })
     : [];
 
-  return { components, wires };
+  return { components, wires: colorDemoWires(components, wires) };
 }
 
 export function createStarterCircuit(): BuiltLabCircuit {
