@@ -2,6 +2,8 @@
 
 React、TypeScript、Three.js、React Three Fiber 与 WebGL 2 驱动的交互式实验台。房间、仪器、端口和导线全部通过代码建模，不使用现成三维模型。
 
+**[打开在线实验室](https://jmcake.github.io/CircuitLab-3D-Web/)** · [网页发布仓库](https://github.com/JmCake/CircuitLab-3D-Web)
+
 当前开发版本 **v0.4.0** 按用户提供的八项课堂实验组织，加入浮动工作区、仪器控制台和数据大屏。尚未取得河北农业大学现用指导书、实验原理图和设备型号，因此不宣称复原该校现用装置。
 
 ![实际浮动工作区与程序化仪器](docs/media/v0.4-workspace.png)
@@ -55,6 +57,14 @@ npm run test:e2e:instruments
 npm run build
 npm run preview -- --port 4175
 ```
+
+## 网页部署
+
+源码仓库保持私有。公开仓库 `JmCake/CircuitLab-3D-Web` 只保存编译后的网页文件，由 GitHub Pages 托管；不上传源码工程、内部文档或个人实验记录。
+
+推送到 `main` 后，CI 完成类型检查、测试、生产构建和四组浏览器验收，再运行 `build:web` 并自动发布。专用部署密钥只授权网页发布仓库；私钥保存在源码仓库的 Actions Secret `PAGES_DEPLOY_KEY` 中。可在 Actions 的 CI 页面手动重跑，旧提交不会覆盖新的主分支版本。
+
+`npm run dev` 继续用于本机即时预览。`npm run build:web` 单独输出 `dist-web/`，不会覆盖本机生产预览的 `dist/`。线上当前源码提交可通过网站的 `version.json` 核对。
 
 ## 仿真范围
 

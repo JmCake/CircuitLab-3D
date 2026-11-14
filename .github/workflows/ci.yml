@@ -3,6 +3,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   typecheck-test-build:
@@ -75,3 +76,30 @@ jobs:
     steps:
       - name: Require every browser suite to pass
         run: test '${{ needs.browser_suites.result }}' = 'success'
+
+  deploy-web:
+    needs: [typecheck-test-build, browser-checks]
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    concurrency:
+      group: web-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build public website
+        run: npm run build:web
+      - name: Publish compiled files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PAGES_DEPLOY_KEY: ${{ secrets.PAGES_DEPLOY_KEY }}
+        run: bash scripts/publish-web.sh

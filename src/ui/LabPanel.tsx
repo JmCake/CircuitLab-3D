@@ -123,7 +123,7 @@ export function LabPanel() {
         <details className="model-note collapsible">
           <summary>模型边界</summary>
           <p>
-            直流线性网络使用节点分析求解；LED 为分段线性模型，小灯泡为线性电阻 + 功率亮度映射，RC
+            直流线性网络使用节点分析求解；LED 为分段线性模型，小灯泡为稳态热电阻经验模型，RC
             采用后向欧拉暂态。所有近似均不会冒充未建模的物理效应。
           </p>
         </details>
