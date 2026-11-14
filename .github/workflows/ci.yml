@@ -32,7 +32,7 @@ jobs:
 
   browser-checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       CHROME_PATH: /usr/bin/google-chrome
     steps:
@@ -48,6 +48,8 @@ jobs:
         run: npm run test:e2e
       - name: Teaching, transient, accessibility and viewport checks
         run: npm run test:e2e:advanced
+      - name: Wire routing and rendered-mesh collision checks
+        run: npm run test:e2e:wires
       - name: Save browser evidence
         if: always()
         continue-on-error: true

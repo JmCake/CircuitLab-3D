@@ -1,101 +1,17 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Line } from '@react-three/drei';
-import type { ThreeEvent } from '@react-three/fiber';
+import { useThree, type ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
-import {
-  findPortOwner,
-  getDefinition,
-  getPortWorldNormal,
-  getPortWorldPosition,
-  type LabComponent,
-  type PortDefinition,
-  type Wire as CircuitWire,
-} from '../circuit';
+import { type Wire as CircuitWire } from '../circuit';
 import { useLabStore } from '../store/labStore';
 import { MATERIALS } from './materials';
+import { createWireRoutingScene, getWireAttachment, routeWire, WIRE_RADIUS, type RoutedWire, type WireAttachment, type WireRoutingScene } from './wireRouting';
+import { useViewStore } from '../store/viewStore';
+import { wireInspection } from './wireInspection';
 
-interface Attachment {
-  pathPoint: THREE.Vector3;
-  plugPoint: THREE.Vector3;
-  normal: THREE.Vector3;
-  isHole: boolean;
-}
-
+type Attachment = WireAttachment;
 const LOCAL_FORWARD = new THREE.Vector3(0, 0, 1);
 const UP = new THREE.Vector3(0, 1, 0);
-
-function getAttachment(
-  components: LabComponent[],
-  portId: string,
-  stackIndex = 0,
-): Attachment | null {
-  const owner = findPortOwner(components, portId);
-  if (!owner) return null;
-  const port = getDefinition(owner.component.type).ports.find(
-    (item) => item.key === owner.portKey,
-  );
-  if (!port) return null;
-  const world = getPortWorldPosition(owner.component, owner.portKey);
-  if (!world) return null;
-  const normal = new THREE.Vector3(...getPortWorldNormal(owner.component, owner.portKey)).normalize();
-  const p = new THREE.Vector3(...world);
-  const isHole = port.role === 'hole' || port.visible === false;
-  const stackOffset = isHole ? 0 : stackIndex * 0.024;
-  const pathOffset = (isHole ? 0.028 : 0.057) + stackOffset;
-  const plugOffset = (isHole ? 0.001 : 0.012) + stackOffset;
-  return {
-    pathPoint: p.clone().add(normal.clone().multiplyScalar(pathOffset)),
-    plugPoint: p.clone().add(normal.clone().multiplyScalar(plugOffset)),
-    normal,
-    isHole,
-  };
-}
-
-function hashSeed(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-function makeCurve(
-  start: THREE.Vector3,
-  startNormal: THREE.Vector3,
-  end: THREE.Vector3,
-  endNormal: THREE.Vector3,
-  seed: string,
-): THREE.CatmullRomCurve3 {
-  const distance = start.distanceTo(end);
-  const hash = hashSeed(seed);
-  const horizontal = new THREE.Vector3(end.x - start.x, 0, end.z - start.z);
-  const horizontalLength = horizontal.length();
-  const side = horizontalLength > 1e-5
-    ? new THREE.Vector3(-horizontal.z, 0, horizontal.x).normalize()
-    : new THREE.Vector3(1, 0, 0);
-  const lateral = ((hash % 7) - 3) * 0.008;
-  // Slack cables sag onto the desk instead of forming tall arches across instrument displays.
-  const deskHeight = 0.009 + (hash % 5) * 0.002;
-  const firstControl = start
-    .clone()
-    .add(startNormal.clone().multiplyScalar(Math.min(0.06, distance * 0.32)))
-    .add(new THREE.Vector3(0, -0.008, 0));
-  const lastControl = end
-    .clone()
-    .add(endNormal.clone().multiplyScalar(Math.min(0.06, distance * 0.32)))
-    .add(new THREE.Vector3(0, -0.008, 0));
-  const middle = start
-    .clone()
-    .add(end)
-    .multiplyScalar(0.5)
-    .add(side.multiplyScalar(lateral));
-  middle.y = Math.min(middle.y, deskHeight);
-  const points = [start, firstControl, middle, lastControl, end];
-  for (const point of points) {
-    point.y = Math.max(0.006, point.y);
-  }
-  return new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.5);
-}
 
 function BananaPlug({
   attachment,
@@ -147,36 +63,26 @@ function BananaPlug({
 
 function WireMesh({
   wire,
-  components,
+  from,
+  to,
+  route,
   selected,
 }: {
   wire: CircuitWire;
-  components: LabComponent[];
+  from: WireAttachment;
+  to: WireAttachment;
+  route: RoutedWire;
   selected: boolean;
 }) {
   const selectWire = useLabStore((state) => state.selectWire);
-  const wires = useLabStore(state => state.wires);
-  const stackAt = (portId: string) => wires.filter(w => w.fromPortId === portId || w.toPortId === portId).findIndex(w => w.id === wire.id);
-  const from = getAttachment(components, wire.fromPortId, stackAt(wire.fromPortId));
-  const to = getAttachment(components, wire.toPortId, stackAt(wire.toPortId));
-
-  const pathKey = from && to
-    ? `${from.pathPoint.x.toFixed(5)},${from.pathPoint.y.toFixed(5)},${from.pathPoint.z.toFixed(5)}|${to.pathPoint.x.toFixed(5)},${to.pathPoint.y.toFixed(5)},${to.pathPoint.z.toFixed(5)}|${wire.id}`
-    : '';
 
   const geometry = useMemo(() => {
-    if (!from || !to) return null;
-    const curve = makeCurve(from.pathPoint, from.normal, to.pathPoint, to.normal, wire.id);
-    return new THREE.TubeGeometry(curve, 40, 0.0033, 7, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathKey]);
+    return new THREE.TubeGeometry(route.curve, route.segments, WIRE_RADIUS, 7, false);
+  }, [route]);
 
   const pickGeometry = useMemo(() => {
-    if (!from || !to) return null;
-    const curve = makeCurve(from.pathPoint, from.normal, to.pathPoint, to.normal, wire.id);
-    return new THREE.TubeGeometry(curve, 24, 0.011, 4, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathKey]);
+    return new THREE.TubeGeometry(route.curve, route.segments, 0.011, 4, false);
+  }, [route]);
 
   useEffect(() => {
     return () => {
@@ -208,7 +114,7 @@ function WireMesh({
 
   return (
     <group>
-      <mesh geometry={geometry} material={material} castShadow receiveShadow />
+      <mesh geometry={geometry} material={material} castShadow receiveShadow userData={{ wireId: wire.id, routingMode: route.mode }} />
       {selected && (
         <mesh geometry={geometry}>
           <meshBasicMaterial color="#e2b371" transparent opacity={0.22} depthWrite={false} toneMapped={false} />
@@ -237,29 +143,31 @@ function WireMesh({
   );
 }
 
-function WirePreview() {
+function WirePreview({ routingScene }: { routingScene: WireRoutingScene }) {
   const draft = useLabStore((state) => state.draftWire);
   const components = useLabStore((state) => state.components);
-  const start = draft ? getAttachment(components, draft.fromPortId) : null;
+  const wires = useLabStore(state => state.wires);
+  const stackAt = (id: string) => wires.filter(w => w.fromPortId === id || w.toPortId === id).length;
+  const start = draft ? getWireAttachment(components, draft.fromPortId, stackAt(draft.fromPortId)) : null;
 
   if (!draft || !start) return null;
   const target = draft.targetPortId
-    ? getAttachment(components, draft.targetPortId)
+    ? getWireAttachment(components, draft.targetPortId, stackAt(draft.targetPortId))
     : null;
   const endPoint = target
     ? target.pathPoint.clone()
     : new THREE.Vector3(...draft.cursor).add(new THREE.Vector3(0, 0.01, 0));
   const endNormal = target ? target.normal : UP;
-  const curve = makeCurve(start.pathPoint, start.normal, endPoint, endNormal, 'preview');
-  const points = curve.getPoints(42);
-  const color = draft.valid
+  const route = routeWire(routingScene, start, { pathPoint: endPoint, normal: endNormal });
+  const points = route?.curve.getSpacedPoints(route.segments);
+  const color = !route ? '#ff7f69' : draft.valid
     ? '#72efbe'
     : draft.targetPortId
       ? '#ff7f69'
       : '#e6b56e';
   return (
     <group renderOrder={20}>
-      <Line
+      {points && <Line
         points={points}
         color={color}
         lineWidth={2.2}
@@ -269,8 +177,8 @@ function WirePreview() {
         gapSize={0.008}
         transparent
         opacity={0.92}
-        depthTest={false}
-      />
+        depthTest
+      />}
       <mesh position={endPoint}>
         <sphereGeometry args={[0.008, 16, 12]} />
         <meshBasicMaterial color={color} transparent opacity={0.55} toneMapped={false} depthWrite={false} />
@@ -290,20 +198,45 @@ function WirePreview() {
 }
 
 export function WireSystem() {
+  const scene = useThree(s => s.scene);
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    wireInspection.scene = scene;
+    return () => { if (wireInspection.scene === scene) wireInspection.scene = null; };
+  }, [scene]);
   const wires = useLabStore((state) => state.wires);
   const components = useLabStore((state) => state.components);
   const selectedWireId = useLabStore((state) => state.selectedWireId);
+  // Electrical parameter edits replace components too; routing depends only on instrument poses.
+  const layoutKey = JSON.stringify(components.map(c => [c.id, c.type, ...c.position, c.rotationY]));
+  const routingScene = useMemo(() => createWireRoutingScene(components), [layoutKey]);
+  const routed = useMemo(() => {
+    const slots = new Map<string, number>();
+    return wires.map(wire => {
+      const takeSlot = (id: string) => { const index = slots.get(id) ?? 0; slots.set(id, index + 1); return index; };
+      const from = getWireAttachment(components, wire.fromPortId, takeSlot(wire.fromPortId));
+      const to = getWireAttachment(components, wire.toPortId, takeSlot(wire.toPortId));
+      return { wire, from, to, route: from && to ? routeWire(routingScene, from, to) : null };
+    });
+  }, [layoutKey, wires, routingScene]);
+  const blocked = routed.filter(r => !r.route).length;
+  useEffect(() => {
+    useViewStore.setState({ blockedWires: blocked });
+    return () => { useViewStore.setState({ blockedWires: 0 }); };
+  }, [blocked]);
   return (
     <group>
-      {wires.map((wire) => (
+      {routed.map(({ wire, from, to, route }) => from && to && route && (
         <WireMesh
           key={wire.id}
           wire={wire}
-          components={components}
+          from={from}
+          to={to}
+          route={route}
           selected={wire.id === selectedWireId}
         />
       ))}
-      <WirePreview />
+      <WirePreview routingScene={routingScene} />
     </group>
   );
 }

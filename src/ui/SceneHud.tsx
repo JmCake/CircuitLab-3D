@@ -14,6 +14,7 @@ function portName(components: ReturnType<typeof useLabStore.getState>['component
 }
 
 export function SceneHud() {
+  const blockedWires = useViewStore(s => s.blockedWires);
   const quality = useViewStore(s => s.quality);
   const setQuality = useViewStore(s => s.setQuality);
   const interactionMode = useLabStore((state) => state.interactionMode);
@@ -104,6 +105,7 @@ export function SceneHud() {
         </div>
       )}
 
+      {blockedWires > 0 && <div className="wire-obstruction" role="status">{blockedWires} 根导线的出线空间不足，请移开接线柱附近的器材，导线将自动恢复。</div>}
       <div className="scene-hints">
         <div className="hint-line">
           <span><b>左键拖动</b> 移动器材</span>

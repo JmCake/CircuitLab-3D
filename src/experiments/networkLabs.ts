@@ -94,7 +94,7 @@ export const NETWORK_LAYOUTS: Record<string, LabBuildSpec> = {
   superposition: {
     components: [
       { alias: 'ps1', type: 'power-supply', position: [-0.64, -0.24], params: { voltage: 6 } },
-      { alias: 'ps2', type: 'power-supply', position: [-0.64, 0.2], params: { voltage: 3 } },
+      { alias: 'ps2', type: 'power-supply', position: [-0.64, 0.24], params: { voltage: 3 } },
       { alias: 'r1', type: 'resistor', position: [-0.09, -0.24], params: { resistance: 1000 } },
       { alias: 'r2', type: 'resistor', position: [-0.09, 0.17], params: { resistance: 1500 } },
       { alias: 'load', type: 'resistor-box', position: [0.28, 0.19], params: { resistance: 1000 } },

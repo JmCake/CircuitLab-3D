@@ -291,8 +291,9 @@ function LabWall() {
       <mesh position={[0, 0.8, 4]} receiveShadow material={MATERIALS.shellWarm}>
         <boxGeometry args={[8, 3.2, 0.1]} />
       </mesh>
-      <mesh position={[0, 2.4, 0]} receiveShadow material={MATERIALS.shellLight}>
-        <boxGeometry args={[8, 0.08, 8]} />
+      <mesh position={[0, 2.4, 0]} rotation={[Math.PI / 2, 0, 0]} receiveShadow material={MATERIALS.shellLight}>
+        {/* One-sided interior ceiling: the editor's overhead view sees into the room. */}
+        <planeGeometry args={[8, 8]} />
       </mesh>
 
       {/* 墙裙、踢脚线与板缝 */}

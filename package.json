@@ -13,6 +13,7 @@
     "test:watch": "vitest --pool=threads",
     "test:e2e": "node scripts/browser-check.mjs",
     "test:e2e:advanced": "node scripts/advanced-check.mjs",
+    "test:e2e:wires": "node scripts/wire-check.mjs",
     "check": "npm run typecheck && npm test && npm run build"
   },
   "engines": {

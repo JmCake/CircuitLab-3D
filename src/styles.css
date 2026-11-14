@@ -3326,3 +3326,5 @@ kbd {
   .topbar-separator { display: none; }
   .brand-mark { width: 32px; height: 32px; }
 }
+
+.wire-obstruction { position: absolute; bottom: 84px; left: 16px; right: 16px; padding: 10px 12px; border: 1px solid var(--warning); border-radius: 7px; background: var(--warning-soft); color: var(--warning); font-size: 12px; line-height: 1.6; pointer-events: none; }
