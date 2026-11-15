@@ -95,7 +95,7 @@ kbd {
   background: #fcfaf5;
   color: var(--ink-2);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1;
 }
 
@@ -171,7 +171,7 @@ kbd {
   border-radius: 4px;
   background: var(--accent);
   color: #f7f1e0;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
   vertical-align: 2px;
@@ -180,7 +180,7 @@ kbd {
 .brand-subtitle {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.045em;
   white-space: nowrap;
@@ -215,7 +215,7 @@ kbd {
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 560;
   cursor: pointer;
   transition:
@@ -246,7 +246,7 @@ kbd {
   border-radius: 8px;
   background: rgba(255, 253, 248, 0.62);
   color: var(--ink-2);
-  font-size: 11.5px;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -260,7 +260,7 @@ kbd {
   background: var(--accent-soft);
   color: var(--accent);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
@@ -317,7 +317,7 @@ kbd {
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 570;
   line-height: 1;
   white-space: nowrap;
@@ -326,7 +326,7 @@ kbd {
 .button.compact {
   height: 31px;
   padding: 0 9px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .button.full {
@@ -436,7 +436,7 @@ kbd {
   padding: 2px 0;
   background: transparent;
   color: var(--accent);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -488,7 +488,7 @@ kbd {
   border-radius: var(--radius-sm);
   background: var(--panel-raised);
   color: var(--ink-2);
-  font-size: 11.5px;
+  font-size: 12px;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
   transition:
     border-color 140ms ease,
@@ -583,7 +583,7 @@ kbd {
   background: rgba(250, 248, 242, 0.94);
   color: var(--accent-strong);
   box-shadow: var(--shadow-sm);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   pointer-events: none;
 }
@@ -618,7 +618,7 @@ kbd {
   background: rgba(32, 38, 35, 0.55);
   color: rgba(255, 252, 244, 0.78);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.09em;
   backdrop-filter: blur(8px);
@@ -708,14 +708,14 @@ kbd {
 
 .wire-prompt strong {
   display: block;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 630;
 }
 
 .wire-prompt p {
   margin: 2px 0 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -735,7 +735,7 @@ kbd {
   border-radius: 6px;
   background: rgba(37, 43, 40, 0.72);
   color: rgba(255, 253, 247, 0.85);
-  font-size: 10px;
+  font-size: 12px;
   backdrop-filter: blur(7px);
 }
 
@@ -756,7 +756,7 @@ kbd {
   border-radius: 7px;
   background: rgba(33, 39, 36, 0.57);
   color: rgba(255, 252, 244, 0.63);
-  font-size: 9.5px;
+  font-size: 12px;
   letter-spacing: 0.01em;
   backdrop-filter: blur(8px);
 }
@@ -781,7 +781,7 @@ kbd {
   gap: 5px;
   color: rgba(255, 252, 244, 0.55);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8.5px;
+  font-size: 12px;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -817,7 +817,7 @@ kbd {
   display: block;
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8.5px;
+  font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.11em;
 }
@@ -831,13 +831,13 @@ kbd {
   background: rgba(255, 253, 247, 0.55);
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .library-hint {
   margin: 3px 18px 11px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -862,14 +862,14 @@ kbd {
 
 .library-section-heading span {
   color: var(--ink-2);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
 }
 
 .library-section-heading small {
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 7.5px;
+  font-size: 12px;
   letter-spacing: 0.055em;
 }
 
@@ -944,7 +944,7 @@ kbd {
 
 .part-name em {
   color: var(--accent);
-  font-size: 9px;
+  font-size: 12px;
   font-style: normal;
   font-family: "SFMono-Regular", Consolas, monospace;
 }
@@ -952,8 +952,8 @@ kbd {
 .part-description {
   overflow: hidden;
   color: var(--muted);
-  font-size: 9.5px;
-  line-height: 1.3;
+  font-size: 12px;
+  line-height: 1.35;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -1008,7 +1008,7 @@ kbd {
   justify-content: space-between;
   gap: 8px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .wire-swatches {
@@ -1045,7 +1045,7 @@ kbd {
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
 }
 
 .summary-dot {
@@ -1061,7 +1061,7 @@ kbd {
 
 .library-footer .text-button {
   align-self: flex-start;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 /* ---------- Side panel ---------- */
@@ -1100,7 +1100,7 @@ kbd {
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 560;
   cursor: pointer;
   transition: color 140ms ease, border-color 140ms ease;
@@ -1133,7 +1133,7 @@ kbd {
   background: var(--danger-soft);
   color: var(--danger);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 700;
 }
@@ -1154,7 +1154,7 @@ kbd {
   gap: 6px;
   flex: 0 0 auto;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
 }
 
 .circuit-status strong {
@@ -1204,7 +1204,7 @@ kbd {
   min-width: 0;
   margin-left: auto;
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 9.5px;
+  font-size: 12px;
   color: var(--ink-2);
 }
 
@@ -1218,13 +1218,13 @@ kbd {
 .live-metrics em {
   color: var(--faint);
   font-style: normal;
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 .live-muted {
   color: var(--faint) !important;
   font-family: inherit !important;
-  font-size: 9px !important;
+  font-size: 12px !important;
 }
 
 .diagnostic-pill {
@@ -1237,7 +1237,7 @@ kbd {
   border: 0;
   border-radius: 9px;
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -1280,7 +1280,7 @@ kbd {
   gap: 6px;
   margin-bottom: 10px;
   color: var(--ink-2);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 650;
 }
 
@@ -1292,14 +1292,14 @@ kbd {
   margin-left: auto;
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8.5px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .panel-card-title.subtle {
   margin-top: 13px;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
 }
 
 .panel-section {
@@ -1325,14 +1325,14 @@ kbd {
   display: block;
   margin-bottom: 3px;
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
 }
 
 .model-note p,
 .info-note p {
   margin: 0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -1354,7 +1354,7 @@ kbd {
   margin-top: 6px;
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 .collapsible summary {
@@ -1362,7 +1362,7 @@ kbd {
   align-items: center;
   gap: 5px;
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   list-style: none;
@@ -1387,21 +1387,21 @@ kbd {
 .empty-inline {
   padding: 8px 0;
   color: var(--faint);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
 .muted-copy {
   margin: 0;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
 .param-help {
   margin: 6px 0 0;
   color: var(--faint);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -1452,7 +1452,7 @@ kbd {
 .lab-hero > p {
   margin: 9px 0 0;
   color: var(--ink-2);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.62;
 }
 
@@ -1467,7 +1467,7 @@ kbd {
   background: rgba(255, 253, 248, 0.6);
   color: var(--accent);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.03em;
 }
@@ -1476,7 +1476,7 @@ kbd {
   height: 20px;
   min-width: 31px;
   justify-content: center;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .formula-strip {
@@ -1493,7 +1493,7 @@ kbd {
 
 .formula-strip span {
   flex: 0 0 auto;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1502,7 +1502,7 @@ kbd {
   overflow: hidden;
   color: #f0d9ab;
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -1534,7 +1534,7 @@ kbd {
   flex: 0 0 auto;
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -1565,7 +1565,7 @@ kbd {
   border-radius: 5px;
   background: var(--panel-muted);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .kit-chip.is-ready {
@@ -1578,7 +1578,7 @@ kbd {
   margin-left: 2px;
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-style: normal;
 }
 
@@ -1609,7 +1609,7 @@ kbd {
 
 .diagnostic-banner strong {
   display: block;
-  font-size: 9.8px;
+  font-size: 12px;
   line-height: 1.45;
   font-weight: 560;
 }
@@ -1618,7 +1618,7 @@ kbd {
   display: block;
   margin-top: 2px;
   opacity: 0.7;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .lab-steps {
@@ -1661,7 +1661,7 @@ kbd {
   border-radius: 50%;
   background: rgba(255, 253, 248, 0.55);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 650;
 }
 
@@ -1694,14 +1694,14 @@ kbd {
 
 .step-title-row strong {
   color: var(--ink-2);
-  font-size: 10.8px;
+  font-size: 12px;
   font-weight: 630;
 }
 
 .step-title-row em {
   margin-left: auto;
   color: var(--ok);
-  font-size: 8px;
+  font-size: 12px;
   font-style: normal;
   font-weight: 600;
 }
@@ -1709,8 +1709,8 @@ kbd {
 .step-body > p {
   margin: 3px 0 5px;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.58;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .step-feedback {
@@ -1718,7 +1718,7 @@ kbd {
   border-radius: 4px;
   background: rgba(242, 238, 231, 0.8);
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -1745,13 +1745,13 @@ kbd {
 
 .completion-card strong {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .completion-card p {
   margin: 4px 0 5px;
   color: #59705f;
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -1787,14 +1787,14 @@ kbd {
 
 .free-stats span {
   color: var(--muted);
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 .guide-list {
   margin: 0;
   padding-left: 15px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -1837,14 +1837,14 @@ kbd {
 }
 
 .lab-quick-row strong {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 570;
 }
 
 .lab-quick-row small {
   overflow: hidden;
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 12px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -1905,13 +1905,13 @@ kbd {
   border-radius: 4px;
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .inspector-description {
   margin: 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -1932,7 +1932,7 @@ kbd {
   border-radius: 6px;
   background: var(--panel-raised);
   color: var(--ink-2);
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 520;
   white-space: nowrap;
 }
@@ -1955,7 +1955,7 @@ kbd {
   background: rgba(239, 235, 227, 0.68);
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .param-list {
@@ -1974,7 +1974,7 @@ kbd {
 .param-label-row label,
 .switch-field label {
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 560;
 }
 
@@ -1988,7 +1988,7 @@ kbd {
 .param-value {
   color: var(--accent-strong);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -1996,14 +1996,14 @@ kbd {
   margin-left: 2px;
   color: var(--faint);
   font-style: normal;
-  font-size: 8.5px;
+  font-size: 12px;
   font-weight: 500;
 }
 
 .param-limit {
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .number-input-wrap {
@@ -2016,7 +2016,7 @@ kbd {
   top: 50%;
   transform: translateY(-50%);
   color: var(--faint);
-  font-size: 9px;
+  font-size: 12px;
   pointer-events: none;
 }
 
@@ -2038,7 +2038,7 @@ kbd {
   background: rgba(255, 253, 247, 0.6);
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
   cursor: pointer;
 }
 
@@ -2106,7 +2106,7 @@ kbd {
   margin-top: -3px;
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .switch-field {
@@ -2129,7 +2129,7 @@ kbd {
   background: var(--panel-muted);
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .switch-state.on {
@@ -2193,13 +2193,13 @@ kbd {
 
 .value-tile span {
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 .value-tile strong {
   color: var(--ink-2);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 570;
 }
 
@@ -2236,14 +2236,14 @@ kbd {
 
 .port-copy strong {
   color: var(--ink-2);
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 550;
 }
 
 .port-copy span {
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 7.5px;
+  font-size: 12px;
 }
 
 .port-polarity {
@@ -2251,7 +2251,7 @@ kbd {
   padding: 2px 4px;
   border-radius: 3px;
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 7px;
+  font-size: 12px;
   letter-spacing: 0.04em;
 }
 
@@ -2276,7 +2276,7 @@ kbd {
   padding: 5px 0;
   border-top: 1px dashed var(--line);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .connected-wire-row > span:nth-child(2) {
@@ -2320,7 +2320,7 @@ kbd {
   display: block;
   margin-bottom: 2px;
   color: var(--faint);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .wire-endpoint .link-button {
@@ -2328,7 +2328,7 @@ kbd {
   border: 0;
   background: transparent;
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 540;
   text-align: left;
   cursor: pointer;
@@ -2377,7 +2377,7 @@ kbd {
   max-width: 290px;
   margin: 7px auto 0;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -2398,14 +2398,14 @@ kbd {
   border-radius: 6px;
   background: rgba(255, 253, 248, 0.5);
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
 .tip-key {
   color: var(--ink-2);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 650;
 }
 
@@ -2418,7 +2418,7 @@ kbd {
   padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 /* ---------- Data panel ---------- */
@@ -2445,7 +2445,7 @@ kbd {
   border-radius: 4px;
   color: var(--muted);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .live-readout-grid {
@@ -2468,7 +2468,7 @@ kbd {
 
 .readout-label {
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 .readout-card strong {
@@ -2481,7 +2481,7 @@ kbd {
 
 .readout-card small {
   color: var(--faint);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .data-actions-row {
@@ -2498,7 +2498,7 @@ kbd {
   padding-left: 9px;
   border-left: 2px solid #ddd1bd;
   color: var(--faint);
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -2520,13 +2520,13 @@ kbd {
 
 .transient-metrics span {
   color: var(--faint);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .transient-metrics strong {
   color: var(--ink-2);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 550;
 }
 
@@ -2537,7 +2537,7 @@ kbd {
   border-radius: 3px;
   color: var(--muted) !important;
   font-family: inherit !important;
-  font-size: 8px !important;
+  font-size: 12px !important;
 }
 
 .chart-wrap {
@@ -2577,7 +2577,7 @@ kbd {
 .chart-label {
   fill: #9a9b91;
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 7px;
+  font-size: 12px;
 }
 
 .chart-legend {
@@ -2587,7 +2587,7 @@ kbd {
   gap: 7px;
   margin: 7px 0;
   color: var(--faint);
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .chart-legend span:first-child {
@@ -2612,12 +2612,12 @@ kbd {
   border-radius: 6px;
   text-align: center;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
 }
 
 .empty-table small {
   color: var(--faint);
-  font-size: 8.5px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -2631,7 +2631,7 @@ kbd {
 .measurement-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 8.5px;
+  font-size: 12px;
 }
 
 .measurement-table th {
@@ -2699,14 +2699,14 @@ kbd {
   display: block;
   margin-bottom: 2px;
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 7.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.015em;
 }
 
 .diagnostic-item p {
   margin: 0;
-  font-size: 9px;
+  font-size: 12px;
   line-height: 1.48;
 }
 
@@ -2718,7 +2718,7 @@ kbd {
   border-radius: 5px;
   background: var(--ok-soft);
   color: #50715f;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 /* ---------- Toasts ---------- */
@@ -2798,14 +2798,14 @@ kbd {
 .toast-copy strong {
   display: block;
   color: var(--ink);
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 640;
 }
 
 .toast-copy p {
   margin: 2px 0 0;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -2891,7 +2891,7 @@ kbd {
   gap: 7px;
   margin-bottom: 11px;
   color: var(--accent-strong);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 660;
 }
 
@@ -2920,14 +2920,14 @@ kbd {
 
 .help-tip strong {
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 620;
 }
 
 .help-tip p {
   margin: 3px 0 0;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -2935,7 +2935,7 @@ kbd {
   margin: 0;
   padding-left: 17px;
   color: var(--muted);
-  font-size: 10.5px;
+  font-size: 12px;
   line-height: 1.68;
 }
 
@@ -2952,13 +2952,13 @@ kbd {
 
 .help-note-grid strong {
   color: var(--ink-2);
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .help-note-grid p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -2989,13 +2989,13 @@ kbd {
 }
 
 .help-about strong {
-  font-size: 10.5px;
+  font-size: 12px;
 }
 
 .help-about p {
   margin: 4px 0 0;
   color: var(--muted);
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -3003,7 +3003,7 @@ kbd {
   flex: 0 0 auto;
   color: var(--faint);
   font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .help-footer-hint {
@@ -3012,7 +3012,7 @@ kbd {
   gap: 6px;
   margin-top: 15px;
   color: var(--faint);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 /* ---------- WebGL fallback ---------- */
@@ -3062,7 +3062,7 @@ kbd {
 .webgl-fallback-card p {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.65;
 }
 
@@ -3161,30 +3161,30 @@ kbd {
 
 /* ---------- Analysis and viewport controls ---------- */
 .view-toolbar { display: flex; align-items: center; gap: 3px; padding: 4px; border: 1px solid #c5bfb4; border-radius: 8px; background: rgba(250,248,243,.94); box-shadow: var(--shadow-sm); pointer-events: auto; }
-.view-toolbar button { display: flex; align-items: center; gap: 5px; border: 0; border-radius: 5px; background: transparent; padding: 6px 8px; font-size: 11px; font-weight: 600; cursor: pointer; }
+.view-toolbar button { display: flex; align-items: center; gap: 5px; border: 0; border-radius: 5px; background: transparent; padding: 6px 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
 .view-toolbar button:hover { background: var(--accent-soft); color: var(--accent); }
-.view-toolbar select, .scene-object-picker select { border: 0; background: transparent; font-size: 11px; padding: 5px; color: var(--ink-2); }
+.view-toolbar select, .scene-object-picker select { border: 0; background: transparent; font-size: 12px; padding: 5px; color: var(--ink-2); }
 .view-toolbar-separator { height: 18px; width: 1px; background: var(--line); margin: 0 4px; }
 .scene-object-picker { position: absolute; right: 16px; bottom: 40px; max-width: 185px; border: 1px solid var(--line); border-radius: 6px; background: rgba(250,248,243,.94); pointer-events: auto; }
 .scene-object-picker select { width: 100%; }
-.analysis-load { display: flex; align-items: center; gap: 12px; font-size: 11px; margin: 14px 0 10px; }
-.analysis-load select { flex: 1; min-width: 0; padding: 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel-raised); font-size: 11px; }
-.conservation-readout { display: grid; gap: 5px; padding: 10px; background: var(--ok-soft); color: var(--ok); border-radius: 6px; font-size: 10px; font-variant-numeric: tabular-nums; }
+.analysis-load { display: flex; align-items: center; gap: 12px; font-size: 12px; margin: 14px 0 10px; }
+.analysis-load select { flex: 1; min-width: 0; padding: 7px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel-raised); font-size: 12px; }
+.conservation-readout { display: grid; gap: 5px; padding: 10px; background: var(--ok-soft); color: var(--ok); border-radius: 6px; font-size: 12px; font-variant-numeric: tabular-nums; }
 .conservation-readout.is-warning { color: var(--warning); background: var(--warning-soft); }
-.conservation-readout strong { font-size: 11px; }
-.branch-results { margin-top: 12px; font-size: 11px; }
+.conservation-readout strong { font-size: 12px; }
+.branch-results { margin-top: 12px; font-size: 12px; }
 .branch-results summary { cursor: pointer; color: var(--ink-2); padding: 4px 0; line-height: 1.7; }
-.branch-results .measurement-table th, .branch-results .measurement-table td { padding: 7px 5px; font-size: 10px; }
+.branch-results .measurement-table th, .branch-results .measurement-table td { padding: 7px 5px; font-size: 12px; }
 .equivalent-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; padding: 12px 0; }
 .equivalent-metrics > div { display: grid; gap: 4px; }
-.equivalent-metrics span { color: var(--muted); font-size: 10px; }
+.equivalent-metrics span { color: var(--muted); font-size: 12px; }
 .equivalent-metrics strong { color: var(--accent-strong); font: 600 15px Consolas, monospace; }
 .power-plot { background: var(--accent-faint); border-radius: 6px; padding: 4px 6px; }
 .power-plot svg { display: block; width: 100%; }
 .power-marker { fill: var(--amber); stroke: var(--panel-raised); stroke-width: 1.8; }
-.superposition-results { font-size: 11px; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.superposition-results { font-size: 12px; margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
 .superposition-results > div { display: flex; justify-content: space-between; gap: 6px; margin-top: 9px; }
-.superposition-results code { font: 11px Consolas, monospace; color: var(--accent); }
+.superposition-results code { font: 12px Consolas, monospace; color: var(--accent); }
 
 /* ---------- Responsive desktop ---------- */
 
@@ -3335,7 +3335,7 @@ kbd {
 .wire-obstruction { position: absolute; top: 66px; left: 16px; display: inline-flex; align-items: center; gap: 6px; width: max-content; max-width: min(240px, calc(100% - 32px)); padding: 7px 10px; border: 1px solid #dbc69f; border-radius: 9px; background: #faf2e2f2; color: var(--warning); box-shadow: 0 3px 12px #342b1c12; font-size: 12px; line-height: 1.4; pointer-events: auto; }
 .wire-obstruction svg { flex: 0 0 auto; }
 
-.course-data > h2 { margin: 0; font-size: 18px; line-height: 1.45; letter-spacing: -.025em; }
+.course-main > h2 { margin: 0; font-size: 18px; line-height: 1.45; letter-spacing: -.025em; }
 .course-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
 .course-controls [aria-pressed="true"] { color: var(--accent-strong); background: var(--accent-soft); border-color: #9fb8aa; }
 .course-controls label, .course-control-label { display: flex; align-items: center; gap: 9px; font-size: 12px; }
@@ -3347,23 +3347,23 @@ kbd {
 .course-voltage input { width: 100%; margin: 0; accent-color: var(--accent); }
 .course-metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; padding: 10px 0; }
 .course-metrics > div { display: grid; gap: 5px; }
-.course-metrics span { font-size: 11px; color: var(--muted); }
+.course-metrics span { font-size: 12px; color: var(--muted); }
 .course-metrics strong { font-size: 18px; color: var(--accent-strong); font-variant-numeric: tabular-nums; }
 .course-plot svg { width: 100%; height: auto; display: block; overflow: visible; }
-.course-plot text, .course-phasors text { fill: var(--muted); font-size: 11px; font-family: inherit; }
+.course-plot text, .course-phasors text { fill: var(--muted); font-size: 12px; font-family: inherit; }
 .course-zero { stroke: #aaa99e; stroke-width: 1; stroke-dasharray: 3 4; }
-.course-legend { display: flex; justify-content: center; gap: 22px; font-size: 11px; color: var(--ink-2); }
+.course-legend { display: flex; justify-content: center; gap: 22px; font-size: 12px; color: var(--ink-2); }
 .course-legend span { display: flex; align-items: center; gap: 6px; }
 .course-legend i { width: 16px; height: 3px; border-radius: 2px; }
 .course-phase-table { table-layout: fixed; width: 100%; }
 .course-phase-table caption { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 10px; }
-.course-phase-table th, .course-phase-table td { padding: 9px 3px; font-size: 11px; text-align: right; }
+.course-phase-table th, .course-phase-table td { padding: 9px 3px; font-size: 12px; text-align: right; }
 .course-phase-table th:first-child { width: 25px; text-align: left; }
 .course-phasors { display: block; width: 100%; height: auto; max-height: 190px; }
 .course-equations { display: grid; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
 .course-equations > div { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.course-equations span { color: var(--ink-2); font-size: 11px; }
-.course-equations code { color: var(--accent-strong); font-size: 11px; white-space: nowrap; }
+.course-equations span { color: var(--ink-2); font-size: 12px; }
+.course-equations code { color: var(--accent-strong); font-size: 12px; white-space: nowrap; }
 .course-check { padding: 8px 0; font-size: 12px; color: var(--warning); }
 .course-check.is-ok { color: var(--ok); }
 .course-issue { margin: 0; color: var(--warning); font-size: 12px; line-height: 1.6; }
@@ -3371,5 +3371,35 @@ kbd {
 .course-records h3 { display: flex; gap: 9px; margin: 0 0 12px; font-size: 13px; }
 .course-records h3 span { color: var(--muted); font-weight: 400; }
 .course-records .measurement-table { min-width: 100%; }
-.course-records .measurement-table th, .course-records .measurement-table td { font-size: 11px; padding: 8px 5px; }
+.course-records .measurement-table th, .course-records .measurement-table td { font-size: 12px; padding: 8px 5px; }
+
+/* 数据大屏：曲线图 SVG 的 viewBox 只有 340 宽，实际渲染约 1.7 倍。文字若不同步回缩，
+   图表标签会比记录表大一倍；记录表反之要单独放大。 */
+.data-presentation .course-plot text,
+.data-presentation .course-phasors text { font-size: 8px; }
+.data-presentation .course-legend { font-size: 14px; }
+.data-presentation .course-metrics span { font-size: 14px; }
+.data-presentation .course-equations span,
+.data-presentation .course-equations code { font-size: 14px; }
+.data-presentation .course-check,
+.data-presentation .course-issue { font-size: 14px; }
+.data-presentation .lesson-analysis .measurement-table th,
+.data-presentation .lesson-analysis .measurement-table td { font-size: 15px; padding: 9px 8px; }
+.data-presentation .course-records .measurement-table th,
+.data-presentation .course-records .measurement-table td { font-size: 15px; padding: 10px 8px; }
+.data-presentation .course-phase-table caption { font-size: 14px; }
+.data-presentation .course-phase-table th,
+.data-presentation .course-phase-table td { font-size: 15px; padding: 10px 6px; }
+
+/* 窄屏大屏里图表已经不放大，文字和大表都要退回小屏尺寸，避免撑破 390px 布局。 */
+@media (max-width: 760px) {
+  .data-presentation .course-plot text,
+  .data-presentation .course-phasors text { font-size: 12px; }
+  .data-presentation .course-records .measurement-table th,
+  .data-presentation .course-records .measurement-table td,
+  .data-presentation .lesson-analysis .measurement-table th,
+  .data-presentation .lesson-analysis .measurement-table td,
+  .data-presentation .course-phase-table th,
+  .data-presentation .course-phase-table td { font-size: 12px; padding: 7px 4px; }
+}
 .formula-strip code { white-space: normal; overflow-wrap: anywhere; line-height: 1.6; }

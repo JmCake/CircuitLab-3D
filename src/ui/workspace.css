@@ -33,15 +33,16 @@
 .console-heading h2 { flex: 1; margin: 0; font-size: 20px; color: #28392f; font-weight: 650; }.console-heading .icon-button { width: 36px; height: 36px; }
 .console-content { overflow: auto; min-height: 0; }
 .instrument-console-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(280px, .8fr); }
-.instrument-console-display { padding: 26px; min-width: 0; }.console-parameters { padding: 24px 28px; border-left: 1px solid var(--line); background: #f5f2eb; min-width: 0; }.console-parameters .param-field { margin-bottom: 20px; }.console-parameters .param-label-row label { font-size: 13px; }.console-parameters .param-limit { font-size: 10px; }.console-parameters .param-slider { width: 100%; }
+.instrument-console-display { padding: 26px; min-width: 0; }.console-parameters { padding: 24px 28px; border-left: 1px solid var(--line); background: #f5f2eb; min-width: 0; }.console-parameters .param-field { margin-bottom: 20px; }.console-parameters .param-label-row label { font-size: 13px; }.console-parameters .param-limit { font-size: 12px; }.console-parameters .param-slider { width: 100%; }
 .console-digital { display: flex; flex-direction: column; gap: 40px; border-radius: 13px; padding: 24px 28px; min-height: 220px; background: radial-gradient(ellipse at 30% 0%, #3b4031, #101c15 78%); color: #e8c06c; box-shadow: inset 0 0 18px #0007; margin-bottom: 24px; }
 .console-digital span { font: 12px Consolas, monospace; letter-spacing: .08em; }.console-digital strong { align-self: flex-end; font: 44px Consolas, monospace; text-shadow: 0 0 18px #c5a43a60; }
 .console-source-values { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; }.console-source-values strong { font-size: 32px; }
-.supply-channels { display: grid; grid-template-columns: 1fr 1fr; background: #10251e; color: #a3e2c4; border-radius: 14px; margin-bottom: 20px; overflow: hidden; }.supply-channels > div { display: flex; flex-direction: column; padding: 24px 22px; gap: 26px; min-width: 0; }.supply-channels > div + div { border-left: 1px solid #406152; }.supply-channels span { display: flex; align-items: center; justify-content: space-between; font: 16px Consolas, monospace; }.supply-channels b { font-size: 11px; color: #e5c377; }.supply-channels strong { font: 29px Consolas, monospace; white-space: nowrap; }
-.scope-view { min-width: 0; }.scope-view svg { width: 100%; display: block; border-radius: 12px; }.scope-view text { font: 12px Consolas, monospace; }.scope-metrics { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }.scope-metrics > div { display: grid; gap: 6px; min-width: 100px; }.scope-metrics span { font-size: 11px; color: var(--muted); }.scope-metrics strong { font: 15px Consolas, monospace; color: #395b4c; }
+.supply-channels { display: grid; grid-template-columns: 1fr 1fr; background: #10251e; color: #a3e2c4; border-radius: 14px; margin-bottom: 20px; overflow: hidden; }.supply-channels > div { display: flex; flex-direction: column; padding: 24px 22px; gap: 26px; min-width: 0; }.supply-channels > div + div { border-left: 1px solid #406152; }.supply-channels span { display: flex; align-items: center; justify-content: space-between; font: 16px Consolas, monospace; }.supply-channels b { font-size: 12px; color: #e5c377; }.supply-channels strong { font: 29px Consolas, monospace; white-space: nowrap; }
+.scope-view { min-width: 0; }.scope-view svg { width: 100%; display: block; border-radius: 12px; }.scope-view text { font: 12px Consolas, monospace; }.scope-metrics { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px; }.scope-metrics > div { display: grid; gap: 6px; min-width: 100px; }.scope-metrics span { font-size: 12px; color: var(--muted); }.scope-metrics strong { font: 15px Consolas, monospace; color: #395b4c; }
 .presentation-backdrop { position: fixed; inset: 0; background: #e6e3dbeF; backdrop-filter: blur(16px); z-index: 80; }
 .course-results, .lesson-analysis { display: contents; }
-.data-presentation .course-results { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 36px; align-items: start; }
+.course-main { display: flex; flex-direction: column; gap: 13px; min-width: 0; }
+.data-presentation .course-data { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); column-gap: 30px; align-items: start; }
 .data-presentation .lesson-analysis { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .data-presentation .course-results .course-records { min-width: 0; margin-top: 0; }
 .data-presentation { inset: 16px; border-radius: 20px; }.data-presentation:fullscreen { inset: 0; border: 0; border-radius: 0; }.data-presentation .console-heading { cursor: default; padding: 22px 32px; }.data-presentation .console-content { padding: 26px 4vw; }.data-presentation .panel-stack { width: min(1280px, 100%); margin: auto; gap: 24px; }.data-presentation h2 { font-size: 25px; }.data-presentation .course-plot svg { max-height: 480px; width: 100%; }.data-presentation .course-phasors { max-height: 380px; width: 100%; }.data-presentation .course-metrics { justify-content: space-around; }.data-presentation .course-metrics strong { font-size: 27px; }.data-presentation .measurement-table { font-size: 13px; }.data-presentation .measurement-table-wrap { max-height: none; }.data-presentation .course-records { margin-top: 10px; }.data-presentation .course-records h3 { font-size: 18px; }.data-presentation .course-controls { gap: 10px; }.data-presentation .course-control-label { max-width: 280px; }.data-presentation .course-voltage { max-width: 600px; }
@@ -50,7 +51,7 @@
   .app .wire-obstruction, .app .library-closed .wire-obstruction { top: 60px; left: auto; right: 10px; max-width: calc(100% - 20px); }
   .app .library-open .wire-obstruction { max-width: calc(100% - 255px); }
   .scope-view text { font-size: 22px; }
-  .data-presentation .course-results { display: flex; flex-direction: column; gap: 26px; }.data-presentation .lesson-analysis, .data-presentation .course-results .course-records { width: 100%; }
+  .data-presentation .course-data { display: flex; flex-direction: column; gap: 26px; }.data-presentation .course-main, .data-presentation .course-records { width: 100%; }
   .app .main-grid, .app .main-grid.library-closed { display: flex; flex-direction: column; overflow: auto; }
   .app .main-grid > .scene-column { position: relative; inset: auto; height: max(350px, 45vh); flex: 0 0 max(350px, 45vh); width: 100%; }
   .app .side-panel { position: relative; right: auto; top: auto; width: calc(100% - 20px); height: auto; min-height: 500px; max-height: none; flex: 0 0 auto; margin: 10px; }
@@ -60,7 +61,7 @@
   .bench-toolbar { bottom: 10px; max-width: calc(100% - 16px); gap: 0; padding: 5px; }.bench-toolbar button { width: 33px; height: 37px; flex: 0 0 auto; }.bench-toolbar > span { margin: 0 2px; }.bench-toolbar [aria-label*="平移视野"] { display: none; }
   .panel-reopen { top: 10px; width: 34px; height: 34px; }.library-reopen { left: 10px; }.side-reopen { right: 10px; }
   .topbar-actions { gap: 1px; }.topbar-actions .button { padding: 5px 7px; }.topbar-actions .button span { display: none; }.brand { min-width: 0; }
-  .instrument-console { width: calc(100vw - 16px); max-height: calc(100dvh - 24px); bottom: 8px; }.console-heading { padding: 12px 15px; gap: 8px; }.console-heading h2 { font-size: 16px; }.instrument-console-layout { display: block; }.instrument-console-display, .console-parameters { padding: 18px; }.console-parameters { border-left: 0; border-top: 1px solid var(--line); }.console-digital { min-height: 170px; padding: 22px; gap: 25px; }.console-digital strong { font-size: 36px; }.supply-channels > div { padding: 18px 12px; gap: 20px; }.supply-channels strong { font-size: 22px; }.data-presentation { inset: 7px; }.data-presentation .console-heading { padding: 12px; }.data-presentation .console-content { padding: 20px 14px; }.data-presentation h2 { font-size: 19px; }.data-presentation .measurement-table { font-size: 11px; }
+  .instrument-console { width: calc(100vw - 16px); max-height: calc(100dvh - 24px); bottom: 8px; }.console-heading { padding: 12px 15px; gap: 8px; }.console-heading h2 { font-size: 16px; }.instrument-console-layout { display: block; }.instrument-console-display, .console-parameters { padding: 18px; }.console-parameters { border-left: 0; border-top: 1px solid var(--line); }.console-digital { min-height: 170px; padding: 22px; gap: 25px; }.console-digital strong { font-size: 36px; }.supply-channels > div { padding: 18px 12px; gap: 20px; }.supply-channels strong { font-size: 22px; }.data-presentation { inset: 7px; }.data-presentation .console-heading { padding: 12px; }.data-presentation .console-content { padding: 20px 14px; }.data-presentation h2 { font-size: 19px; }.data-presentation .measurement-table { font-size: 12px; }
 }
 
 /* The selected instrument keeps its live display above its detailed settings. */
@@ -73,10 +74,10 @@
 .instrument-readout.is-meter .console-digital { color: #eac578; background: radial-gradient(ellipse at 25% 0%, #3e402d, #111a13 80%); }
 .console-digital[data-off="true"] { opacity: .55; }
 .console-digital > span { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.console-digital em { font: 11px system-ui, sans-serif; letter-spacing: 0; opacity: .7; }
+.console-digital em { font: 12px system-ui, sans-serif; letter-spacing: 0; opacity: .7; }
 .instrument-readout.is-compact .console-digital { min-height: 132px; padding: 16px; gap: 25px; margin: 0; border-radius: 10px; }
 .instrument-readout.is-compact .console-digital strong { font-size: 32px; line-height: 1.2; }
-.instrument-readout.is-compact .console-digital > span { font-size: 11px; }
+.instrument-readout.is-compact .console-digital > span { font-size: 12px; }
 .instrument-readout.is-compact .console-source-values { flex-direction: column; gap: 12px; }
 .instrument-readout.is-compact .console-source-values strong { font-size: 26px; }
 .instrument-readout.is-compact .supply-channels { margin: 0; border-radius: 10px; }
@@ -86,11 +87,11 @@
 .scope-view.is-compact text { font: 14px Consolas, monospace; }
 .scope-channel-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 9px; }
 .scope-channel-cards > div { display: grid; gap: 4px; padding: 10px; min-width: 0; background: #f1eee6; border: 1px solid var(--line); border-radius: 8px; }
-.scope-channel-cards span { font-size: 11px; color: var(--muted); }
+.scope-channel-cards span { font-size: 12px; color: var(--muted); }
 .scope-channel-cards > .channel-1 > span:first-child { color: #a78035; }
 .scope-channel-cards > .channel-2 > span:first-child { color: #3a8590; }
 .scope-channel-cards strong { font: 14px Consolas, monospace; color: #344d42; }
-.scope-phase { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; font-size: 11px; color: var(--muted); }
+.scope-phase { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 9px; font-size: 12px; color: var(--muted); }
 .scope-phase strong { color: #345a49; font: 14px Consolas, monospace; }
 .scope-quick-controls { display: grid; gap: 9px; }
 .scope-quick-row, .scope-channel-switch, .instrument-modes { display: flex; align-items: center; gap: 6px; min-width: 0; }
@@ -98,7 +99,7 @@
 .scope-quick-row button, .instrument-modes button { min-height: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: #faf8f3; color: #53675c; font-size: 12px; }
 .scope-quick-row button[aria-pressed="true"], .instrument-modes button[aria-pressed="true"] { color: #2a7562; border-color: #9dbfb0; background: #e7f1eb; }
 .scope-selects { display: grid; grid-template-columns: 1fr 1.3fr; gap: 10px; }
-.scope-selects label { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-size: 11px; }
+.scope-selects label { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--muted); font-size: 12px; }
 .scope-selects select { flex: 1; min-width: 0; padding: 6px 2px; border: 1px solid var(--line); border-radius: 6px; background: #fffdf8; color: #36574a; font-size: 12px; }
 .instrument-modes button { flex: 1; padding-inline: 5px; }
 .source-phasors, .capacitor-readout { display: block; width: 100%; border-radius: 10px; background: #0c211a; color: #9ad5ba; }
@@ -108,3 +109,9 @@
 .capacitor-readout svg { display: block; width: 100%; }
 .inspector-pose summary, .inspector-parameters summary { cursor: pointer; font-size: 12px; font-weight: 600; color: #6c776b; padding-block: 8px; }
 .inspector-pose[open] .inspector-actions, .inspector-parameters[open] .param-list { margin-top: 9px; }
+
+/* 数据大屏：记录列与左列并排从顶部开始，指标不再拉满整行。 */
+.data-presentation .course-data { column-gap: 30px; }
+.data-presentation .course-main { gap: 20px; }
+.data-presentation .course-records { margin-top: 0; border-top: 0; padding-top: 0; }
+.data-presentation .course-metrics { grid-template-columns: repeat(2, minmax(0, 250px)); gap: 26px; justify-content: start; }

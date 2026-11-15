@@ -126,6 +126,7 @@ export function CourseDataPanel({ presentation = false }: { presentation?: boole
     const a = document.createElement('a'); a.href = url; a.download = `circuitlab-${id}.csv`; a.click(); window.setTimeout(() => URL.revokeObjectURL(url), 10000);
   };
   return <div className="panel-stack course-data" aria-label="本实验测量">
+    <div className="course-main">
     <h2>{lab.title}</h2>
     {id === 'iv-characteristics' && <div className="course-controls" role="group" aria-label="伏安特性器件">
       <button type="button" className="button button-secondary" aria-pressed={specimen?.type === 'resistor'} onClick={() => state.getState().replaceComponent('iv-characteristics-r1', 'resistor')}>电阻</button>
@@ -154,9 +155,10 @@ export function CourseDataPanel({ presentation = false }: { presentation?: boole
     ]} /></>}
     {id.startsWith('three-phase-') && <ThreePhasePanel />}
     </div>
+    </div>
+    </div>
     <section className="course-records"><h3>记录 <span>{rows.length}</span></h3>
       {rows.length ? <div className="measurement-table-wrap"><table className="measurement-table"><thead><tr>{columns.map(c => <th key={c}>{c}</th>)}<th /></tr></thead><tbody>{(presentation ? rows : rows.slice(-12)).map((r: MeasurementRow) => { const f = courseRecordFields(r); return <tr key={r.id}>{columns.map(c => <td key={c}>{formatCell(f[c])}</td>)}<td><button className="icon-button tiny" type="button" aria-label="删除测量记录" onClick={() => state.getState().deleteMeasurement(r.id)}><Trash2 size={13} /></button></td></tr>; })}</tbody></table></div> : <div className="empty-inline">暂无测量记录</div>}
     </section>
-    </div>
   </div>;
 }

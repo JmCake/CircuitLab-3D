@@ -10,6 +10,11 @@ import { useViewStore } from '../store/viewStore';
 
 const DEFAULT_POSITION = new THREE.Vector3(0.64, 0.78, 1.62);
 const DEFAULT_TARGET = new THREE.Vector3(0, 0.12, -0.02);
+/**
+ * 实验室四壁内表面在 ±3.95 m、天花板 2.4 m。相机与观察中心的距离一旦超过 4 m，
+ * 就会退到前墙之外，整屏只剩一片米色墙面。所有取景与缩放都必须留出这段余量。
+ */
+const MAX_VIEW_DISTANCE = 3.4;
 
 interface CameraTween {
   active: boolean;
@@ -101,7 +106,7 @@ export function CameraRig() {
         distance = Math.max(distance, Math.abs(relative.dot(right)) / (tanV * usableAspect * 0.85) - relative.dot(forward),
           Math.abs(relative.dot(up)) / (tanV * 0.76) - relative.dot(forward));
       }
-      startTween(target, target.clone().addScaledVector(backward, distance));
+      startTween(target, target.clone().addScaledVector(backward, THREE.MathUtils.clamp(distance, 1.6, MAX_VIEW_DISTANCE)));
     };
 
     cameraBridge.reset = () => {
@@ -207,6 +212,14 @@ export function CameraRig() {
       camera.position.add(new THREE.Vector3(controls.target.x - beforeX, controls.target.y - beforeY, controls.target.z - beforeZ));
       controls.update();
     }
+    // 最后一道拦截：实验室侧墙与前后墙内表面都在 ±3.95 m，相机一旦越过去，
+    // 画面里就只剩一片墙面颜色。把位置夹在室内，越界时由 OrbitControls 收小半径。
+    const roomLimit = 3.6;
+    if (Math.abs(camera.position.x) > roomLimit || Math.abs(camera.position.z) > roomLimit) {
+      camera.position.x = THREE.MathUtils.clamp(camera.position.x, -roomLimit, roomLimit);
+      camera.position.z = THREE.MathUtils.clamp(camera.position.z, -roomLimit, roomLimit);
+      controls.update();
+    }
   });
 
   return (
@@ -221,7 +234,7 @@ export function CameraRig() {
       panSpeed={0.55}
       zoomSpeed={0.75}
       minDistance={1.15}
-      maxDistance={5.5}
+      maxDistance={MAX_VIEW_DISTANCE}
       minPolarAngle={0.01}
       maxPolarAngle={1.34}
       onStart={() => {
