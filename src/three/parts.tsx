@@ -16,6 +16,15 @@ const UP = new THREE.Vector3(0, 1, 0);
 const FORWARD = new THREE.Vector3(0, 0, 1);
 const DRAG_PLANE = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 
+/**
+ * 双击器材打开控制台的判定窗口。浏览器原生 dblclick 跟随系统设置，Windows 默认是
+ * 500 ms，点两下选中器材就会误开控制台。这里自己计时：窗口更短，且必须命中同一件
+ * 器材、指针几乎不动，才认为是双击。
+ */
+const DOUBLE_ACTIVATION_MS = 260;
+const DOUBLE_ACTIVATION_MAX_DRIFT_PX = 6;
+const lastActivation = { componentId: '', time: 0, x: 0, y: 0 };
+
 export function Screw({
   position,
   rotation = [0, 0, 0],
@@ -83,6 +92,22 @@ export function InstrumentFrame({ component, selected, children }: InstrumentFra
     if (event.button !== 0) return;
     event.stopPropagation();
     pointerGesture.hit = true;
+    const now = performance.now();
+    const { clientX, clientY } = event.nativeEvent;
+    const isSecondHit =
+      lastActivation.componentId === component.id &&
+      now - lastActivation.time < DOUBLE_ACTIVATION_MS &&
+      Math.hypot(clientX - lastActivation.x, clientY - lastActivation.y) < DOUBLE_ACTIVATION_MAX_DRIFT_PX;
+    if (isSecondHit) {
+      // 第二次按下直接开控制台，不再开启拖动事务，避免留下半截拖动会话。
+      lastActivation.componentId = '';
+      useViewStore.getState().openConsole(component.id);
+      return;
+    }
+    lastActivation.componentId = component.id;
+    lastActivation.time = now;
+    lastActivation.x = clientX;
+    lastActivation.y = clientY;
     const hit = new THREE.Vector3();
     if (event.ray.intersectPlane(DRAG_PLANE, hit)) {
       beginMove(component.id, [hit.x, hit.z]);
@@ -111,7 +136,6 @@ export function InstrumentFrame({ component, selected, children }: InstrumentFra
       position={[component.position[0], 0, component.position[1]]}
       rotation={[0, component.rotationY, 0]}
       onPointerDown={handlePointerDown}
-      onDoubleClick={event => { event.stopPropagation(); useViewStore.getState().openConsole(component.id); }}
       userData={{ componentId: component.id, interactive: 'component' }}
     >
       {children}
